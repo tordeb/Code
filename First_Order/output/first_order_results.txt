@@ -1,0 +1,597 @@
+==========================================================================================
+FIRST-ORDER MARKOV CHAIN
+==========================================================================================
+
+
+Simulations = 1000
+=== Train/Test Split ===
+Total ActivityIDs: 62
+Train ActivityIDs: 49 (79%)
+Test ActivityIDs: 13 (21%)
+
+=== Transition Matrices ===
+=== Function, Formula Explanation ===
+
+    Calculate first-order transition probability matrices using:
+    P(x_j | x_i) = x_ij / Σ(m=1 to M) x_im
+     
+    Parameters:
+    data: DataFrame with transition data
+    from_col: Column name for current state
+    to_col: Column name for next state
+    categories: List of category names
+
+    Returns: 
+    - First-order transition probability matrix
+    
+
+=== Observed 5x5 Matrix (from training data) ===
+Next_Category      Equipment  Patient  NearPatient  FarPatient  HygieneArea
+SurfaceCategories                                                          
+Equipment              0.576    0.204        0.033       0.100        0.086
+Patient                0.312    0.520        0.040       0.075        0.052
+NearPatient            0.216    0.108        0.405       0.162        0.108
+FarPatient             0.210    0.134        0.038       0.522        0.096
+HygieneArea            0.137    0.021        0.000       0.185        0.658
+
+=== Observed 7x7 Matrix (from training data) ===
+Next_Category        In  Equipment  Patient  NearPatient  FarPatient  HygieneArea    Out
+SurfaceCategories                                                                       
+In                 0.00      0.020    0.000        0.000       0.980        0.000  0.000
+Equipment          0.00      0.572    0.203        0.033       0.100        0.085  0.007
+Patient            0.00      0.312    0.520        0.040       0.075        0.052  0.000
+NearPatient        0.00      0.216    0.108        0.405       0.162        0.108  0.000
+FarPatient         0.00      0.165    0.105        0.030       0.410        0.075  0.215
+HygieneArea        0.07      0.127    0.019        0.000       0.171        0.608  0.006
+Out                0.00      0.000    0.000        0.000       0.000        0.000  0.000
+
+=== Starting Probabilities (from training data) ===
+5x5:
+SurfaceCategories
+HygieneArea    1.0
+Name: proportion, dtype: float64
+
+7x7:
+SurfaceCategories
+In             0.776
+HygieneArea    0.224
+Name: proportion, dtype: float64
+
+=== Test 5x5 Matrix using unseen data ===
+Next_Category      Equipment  Patient  NearPatient  FarPatient  HygieneArea
+SurfaceCategories                                                          
+Equipment              0.576    0.174        0.054       0.130        0.065
+Patient                0.500    0.400        0.000       0.100        0.000
+NearPatient            0.778    0.000        0.111       0.000        0.111
+FarPatient             0.552    0.034        0.069       0.310        0.034
+HygieneArea            0.038    0.038        0.038       0.192        0.692
+
+=== Test 7x7 Matrix using unseen data ===
+Next_Category         In  Equipment  Patient  NearPatient  FarPatient  HygieneArea   Out
+SurfaceCategories                                                                       
+In                 0.000      0.000    0.000        0.000       1.000        0.000  0.00
+Equipment          0.000      0.576    0.174        0.054       0.130        0.065  0.00
+Patient            0.000      0.500    0.400        0.000       0.100        0.000  0.00
+NearPatient        0.000      0.778    0.000        0.111       0.000        0.111  0.00
+FarPatient         0.000      0.381    0.024        0.048       0.214        0.024  0.31
+HygieneArea        0.071      0.036    0.036        0.036       0.179        0.643  0.00
+Out                0.000      0.000    0.000        0.000       0.000        0.000  0.00
+
+=== Convergence Analysis ===
+Tracking transition (Main): Equipment → Patient
+Tracking transition (All): In → Equipment
+
+Main Categories Convergence:
+     9 episodes: P = 0.2432 (  9/ 191 transitions)
+    18 episodes: P = 0.2987 ( 23/ 326 transitions)
+    27 episodes: P = 0.2613 ( 29/ 455 transitions)
+    36 episodes: P = 0.2289 ( 46/ 645 transitions)
+    45 episodes: P = 0.2259 ( 54/ 737 transitions)
+    49 episodes: P = 0.2045 ( 55/ 782 transitions)
+
+All Categories Convergence:
+     9 episodes: P = 0.1111 (  1/ 212 transitions)
+    18 episodes: P = 0.0556 (  1/ 367 transitions)
+    27 episodes: P = 0.0370 (  1/ 516 transitions)
+    36 episodes: P = 0.0278 (  1/ 727 transitions)
+    45 episodes: P = 0.0222 (  1/ 835 transitions)
+    49 episodes: P = 0.0204 (  1/ 888 transitions)
+
+=== Convergence Assessment ===
+Main categories (Equipment → Patient): UNSTABLE (σ = 0.0109)
+All categories (In → Equipment): STABLE (σ = 0.0031)
+
+Minimum episodes for stability:
+  Main categories: ~49 episodes
+  All categories: ~45 episodes
+  Current dataset: 49 episodes
+
+
+Is current data sufficient?
+  Main categories: YES
+  All categories: YES
+
+=== Simulations ====
+Running 1000 simulations for each method...
+Average Care Period Length: 19
+
+5x5 Fixed Length Simulations: 0.37 seconds
+7x7 Terminating State Simulations: 0.35 seconds
+5x5 Fitted Length Simulations: 0.37 seconds
+
+=== Sequence Length Distribution Fitting ===
+Observed lengths: min=4, max=45
+Mean=19.12, Variance=73.58
+Variance/Mean ratio: 3.85 (>1 suggests over-dispersion)
+
+
+Distribution comparison (AIC = Akaike Information Criterion, lower is better):
+  Poisson(λ=19.12): AIC = 418.84
+  NegBinom(n=6.72, p=0.260): AIC = 348.76 <-- BEST FIT
+
+Goodness of fit test (Kolmogorov-Smirnov):
+  D-statistic: 0.0998
+  P-value: 0.6764
+  Result: Good fit (α=0.05)
+
+=== Simulations with Fitted Length Distribution ===
+Using: NegBinom(n=6.72, p=0.260)
+Sampled lengths: min=2, max=66, mean=19.47
+
+
+Fitted-length simulations completed in 0.37 seconds
+
+=== Predicted 5x5 Matrix (from fixed-length simulations) ===
+Next         Equipment  Patient  NearPatient  FarPatient  HygieneArea
+Current                                                              
+Equipment        0.569    0.208        0.036       0.103        0.084
+Patient          0.307    0.523        0.045       0.073        0.052
+NearPatient      0.199    0.096        0.403       0.175        0.127
+FarPatient       0.199    0.137        0.037       0.526        0.101
+HygieneArea      0.142    0.021        0.000       0.185        0.652
+
+=== Predicted 7x7 Matrix (from terminating-state simulations) ===
+Next            In  Equipment  Patient  NearPatient  FarPatient  HygieneArea    Out
+Current                                                                            
+In           0.000      0.017    0.000        0.000       0.983        0.000  0.000
+Equipment    0.000      0.569    0.198        0.033       0.106        0.087  0.007
+Patient      0.000      0.313    0.505        0.043       0.078        0.060  0.000
+NearPatient  0.000      0.212    0.111        0.412       0.170        0.096  0.000
+FarPatient   0.000      0.172    0.099        0.032       0.404        0.073  0.220
+HygieneArea  0.071      0.130    0.019        0.000       0.175        0.598  0.008
+Out          0.000      0.000    0.000        0.000       0.000        0.000  0.000
+
+=== Predicted 5x5 Matrix (from fitted-length simulations) ===
+Next         Equipment  Patient  NearPatient  FarPatient  HygieneArea
+Current                                                              
+Equipment        0.572    0.209        0.032       0.101        0.086
+Patient          0.316    0.515        0.038       0.082        0.049
+NearPatient      0.216    0.118        0.404       0.159        0.103
+FarPatient       0.206    0.134        0.035       0.531        0.094
+HygieneArea      0.134    0.023        0.000       0.181        0.661
+
+5x5 Simulation (Fixed Length)
+['HygieneArea', 'HygieneArea', 'HygieneArea', 'FarPatient', 'Patient', 'Equipment', 'HygieneArea', 'HygieneArea', 'Equipment', 'FarPatient', 'FarPatient', 'Equipment', 'FarPatient', 'FarPatient', 'FarPatient', 'Equipment', 'Equipment', 'Equipment', 'Patient']
+
+7x7 Simulation
+['In', 'FarPatient', 'Out']
+Length: 3
+Started with: In
+Ended with: Out
+
+5x5 Simulation (Fitted Distribution)
+['HygieneArea', 'Equipment', 'Equipment', 'Patient', 'Patient', 'Equipment', 'Equipment', 'Patient', 'Patient', 'Patient', 'NearPatient', 'Patient', 'Equipment', 'Equipment', 'Equipment', 'FarPatient', 'Equipment', 'Equipment', 'Equipment', 'Equipment', 'Patient', 'Patient', 'Equipment', 'Equipment', 'Equipment', 'HygieneArea', 'FarPatient', 'FarPatient', 'HygieneArea', 'HygieneArea', 'HygieneArea', 'HygieneArea', 'HygieneArea', 'HygieneArea']
+Length: 34
+Started with: HygieneArea
+Ended with: HygieneArea
+
+=== Comparison of All Three Simulation Approaches ===
+  (a) Fixed length MAE (5x5):        0.0053
+  (b) Terminating state MAE (7x7):   0.0028
+  (c) Fitted length MAE (5x5):       0.0034
+
+Note: Comparing 5x5 vs 7x7 is not strictly like-for-like
+  because 7x7 has more parameters (49 vs 25) and includes
+  terminating states (In/Out). However, the 7x7 MAE of 0.0028
+  shows how well the terminating model performs overall.
+
+
+=== Dictionary Inventory ===
+Method                    | Chains     | Avg. Chain Len  | MAE       
+-----------------------------------------------------------------
+5x5 fixed length          | 1000       | 19.00           | 0.0053    
+5x5 fitted length         | 1000       | 19.47           | 0.0034    
+7x7 terminating state     | 1000       | 19.13           | 0.0028    
+
+=== Difference between Observed and Predicted Matrices ===
+For 5x5 matrix
+Next_Category      Equipment  Patient  NearPatient  FarPatient  HygieneArea
+SurfaceCategories                                                          
+Equipment              0.007   -0.004       -0.003      -0.003        0.002
+Patient                0.006   -0.003       -0.004       0.002       -0.000
+NearPatient            0.017    0.012        0.002      -0.013       -0.019
+FarPatient             0.011   -0.003        0.001      -0.004       -0.005
+HygieneArea           -0.005   -0.001        0.000       0.000        0.006
+
+For 7x7 matrix
+Next_Category         In  Equipment  Patient  NearPatient  FarPatient  HygieneArea    Out
+SurfaceCategories                                                                        
+In                 0.000      0.004    0.000        0.000      -0.004        0.000  0.000
+Equipment          0.000      0.003    0.005        0.000      -0.006       -0.002 -0.000
+Patient            0.000     -0.001    0.015       -0.003      -0.003       -0.008  0.000
+NearPatient        0.000      0.004   -0.003       -0.007      -0.007        0.012  0.000
+FarPatient         0.000     -0.007    0.006       -0.002       0.006        0.002 -0.005
+HygieneArea       -0.001     -0.003   -0.000        0.000      -0.004        0.010 -0.002
+Out                0.000      0.000    0.000        0.000       0.000        0.000  0.000
+
+For 5x5 fitted-length matrix
+Next_Category      Equipment  Patient  NearPatient  FarPatient  HygieneArea
+SurfaceCategories                                                          
+Equipment              0.004   -0.004        0.001      -0.001       -0.000
+Patient               -0.004    0.005        0.003      -0.007        0.003
+NearPatient            0.000   -0.010        0.001       0.003        0.006
+FarPatient             0.005   -0.001        0.003      -0.008        0.002
+HygieneArea            0.003   -0.003        0.000       0.004       -0.004
+
+Mean Absolute Error for 5x5 (fixed length): 0.0053
+Mean Absolute Error for 7x7: 0.0028
+Mean Absolute Error for 5x5 (fitted length): 0.0034
+
+==== Difference between Observed and Test Matrices ===
+For 5x5 matrix
+Next_Category      Equipment  Patient  NearPatient  FarPatient  HygieneArea
+SurfaceCategories                                                          
+Equipment              0.000    0.031       -0.021      -0.030        0.020
+Patient               -0.188    0.120        0.040      -0.025        0.052
+NearPatient           -0.562    0.108        0.294       0.162       -0.003
+FarPatient            -0.342    0.099       -0.031       0.212        0.061
+HygieneArea            0.099   -0.018       -0.038      -0.007       -0.035
+
+For 7x7 matrix
+Next_Category         In  Equipment  Patient  NearPatient  FarPatient  HygieneArea    Out
+SurfaceCategories                                                                        
+In                 0.000      0.020    0.000        0.000      -0.020        0.000  0.000
+Equipment          0.000     -0.004    0.029       -0.021      -0.031        0.020  0.007
+Patient            0.000     -0.188    0.120        0.040      -0.025        0.052  0.000
+NearPatient        0.000     -0.562    0.108        0.294       0.162       -0.003  0.000
+FarPatient         0.000     -0.216    0.081       -0.018       0.196        0.051 -0.095
+HygieneArea       -0.002      0.091   -0.017       -0.036      -0.008       -0.035  0.006
+Out                0.000      0.000    0.000        0.000       0.000        0.000  0.000
+
+Mean Absolute Error (Train vs Test) for 5x5: 0.1039
+Mean Absolute Error (Train vs Test) for 7x7: 0.0522
+
+=== Levenshtein Distance Summary ===
+=== Method: (5x5_fixed) ===
+Observed chains:  49
+Simulated chains: 1000
+Total comparisons: 49 x 1000 = 49,000
+Simulation time:  0.00 seconds
+Calculation time: 0.02 seconds
+Absolute Distance:
+  Mean:   16.06
+  Median: 15.00
+  Mode:   15.00
+  Std:    4.49
+  Min:    5
+  Max:    38
+  Skew:   1.657
+Normalised Distance:
+  Mean:   0.5988
+  Median: 0.5882
+  Mode:   0.5000
+  Std:    0.1244
+  Min:    0.1795
+  Max:    1.0000
+  Skew:   0.277
+Normal Fit (Absolute):    μ = 16.06, σ = 4.49
+Normal Fit (Normalised):  μ = 0.5988, σ = 0.1244
+
+=== Method: (5x5_fitted) ===
+Observed chains:  49
+Simulated chains: 1000
+Total comparisons: 49 x 1000 = 49,000
+Simulation time:  0.00 seconds
+Calculation time: 0.02 seconds
+Absolute Distance:
+  Mean:   17.73
+  Median: 17.00
+  Mode:   15.00
+  Std:    6.75
+  Min:    2
+  Max:    64
+  Skew:   1.072
+Normalised Distance:
+  Mean:   0.6216
+  Median: 0.6129
+  Mode:   0.6000
+  Std:    0.1312
+  Min:    0.1250
+  Max:    1.0000
+  Skew:   0.281
+Normal Fit (Absolute):    μ = 17.73, σ = 6.75
+Normal Fit (Normalised):  μ = 0.6216, σ = 0.1312
+
+=== Method: (7x7_terminating) ===
+Observed chains:  49
+Simulated chains: 1000
+Total comparisons: 49 x 1000 = 49,000
+Simulation time:  0.00 seconds
+Calculation time: 0.02 seconds
+Absolute Distance:
+  Mean:   19.55
+  Median: 16.00
+  Mode:   16.00
+  Std:    14.72
+  Min:    0
+  Max:    139
+  Skew:   2.710
+Normalised Distance:
+  Mean:   0.5713
+  Median: 0.5714
+  Mode:   0.5000
+  Std:    0.1469
+  Min:    0.0000
+  Max:    1.0000
+  Skew:   -0.234
+Normal Fit (Absolute):    μ = 19.55, σ = 14.72
+Normal Fit (Normalised):  μ = 0.5713, σ = 0.1469
+
+=== Needleman-Wunsch Summary ===
+=== Method: (5x5_fixed) ===
+Observed chains:  49
+Simulated chains: 1000
+Total comparisons: 49 x 1000 = 49,000
+Calculation time: 26.28 seconds
+Absolute Score (Higher is better/more similar):
+  Mean:   -8.68
+  Median: -9.00
+  Mode:   -9.00
+  Std:    5.37
+  Min:    -32.00
+  Max:    10.00
+  Skew:   -0.256
+Normalised Score:
+  Mean:   -0.6728
+  Median: -0.5385
+  Mode:   -0.3684
+  Std:    0.6411
+  Min:    -4.7500
+  Max:    0.5263
+  Skew:   -2.803
+Normal Fit (Absolute):    μ = -8.68, σ = 5.37
+Normal Fit (Normalised):  μ = -0.6728, σ = 0.6411
+
+=== Method: (5x5_fitted) ===
+Observed chains:  49
+Simulated chains: 1000
+Total comparisons: 49 x 1000 = 49,000
+Calculation time: 27.11 seconds
+Absolute Score (Higher is better/more similar):
+  Mean:   -10.55
+  Median: -10.00
+  Mode:   -9.00
+  Std:    6.80
+  Min:    -62.00
+  Max:    12.00
+  Skew:   -0.844
+Normalised Score:
+  Mean:   -0.9717
+  Median: -0.6950
+  Mode:   -1.0000
+  Std:    1.0788
+  Min:    -20.5000
+  Max:    0.7333
+  Skew:   -4.012
+Normal Fit (Absolute):    μ = -10.55, σ = 6.80
+Normal Fit (Normalised):  μ = -0.9717, σ = 1.0788
+
+=== Method: (7x7_terminating) ===
+Observed chains:  49
+Simulated chains: 1000
+Total comparisons: 49 x 1000 = 49,000
+Calculation time: 26.34 seconds
+Absolute Score (Higher is better/more similar):
+  Mean:   -11.63
+  Median: -9.00
+  Mode:   -5.00
+  Std:    13.37
+  Min:    -135.00
+  Max:    15.00
+  Skew:   -2.645
+Normalised Score:
+  Mean:   -1.8059
+  Median: -0.9167
+  Mode:   0.0000
+  Std:    2.3223
+  Min:    -33.7500
+  Max:    1.0000
+  Skew:   -2.262
+Normal Fit (Absolute):    μ = -11.63, σ = 13.37
+Normal Fit (Normalised):  μ = -1.8059, σ = 2.3223
+
+=== Smith-Waterman Summary ===
+=== Method (5x5_fixed) ===
+Observed chains:  49
+Simulated chains: 1000
+Total comparisons: 49 x 1000 = 49,000
+Calculation time: 7.72 seconds
+Absolute Score (Higher is better/more similar):
+  Mean:   10.34
+  Median: 10.00
+  Mode:   8.00
+  Std:    4.75
+  Min:    0.00
+  Max:    37.00
+  Skew:   0.497
+Normalised Score:
+  Mean:   0.3326
+  Median: 0.3182
+  Mode:   0.5000
+  Std:    0.1264
+  Min:    0.0000
+  Max:    0.9737
+  Skew:   0.356
+Normal Fit (Absolute):    μ = 10.34, σ = 4.75
+Normal Fit (Normalised):  μ = 0.3326, σ = 0.1264
+
+=== Method (5x5_fitted) ===
+Observed chains:  49
+Simulated chains: 1000
+Total comparisons: 49 x 1000 = 49,000
+Calculation time: 8.00 seconds
+Absolute Score (Higher is better/more similar):
+  Mean:   9.97
+  Median: 9.00
+  Mode:   6.00
+  Std:    5.21
+  Min:    0.00
+  Max:    40.00
+  Skew:   0.706
+Normalised Score:
+  Mean:   0.3572
+  Median: 0.3421
+  Mode:   0.5000
+  Std:    0.1562
+  Min:    0.0000
+  Max:    1.0000
+  Skew:   0.691
+Normal Fit (Absolute):    μ = 9.97, σ = 5.21
+Normal Fit (Normalised):  μ = 0.3572, σ = 0.1562
+
+=== Method (7x7_terminating) ===
+Observed chains:  49
+Simulated chains: 1000
+Total comparisons: 49 x 1000 = 49,000
+Calculation time: 7.79 seconds
+Absolute Score (Higher is better/more similar):
+  Mean:   9.17
+  Median: 7.00
+  Mode:   4.00
+  Std:    5.74
+  Min:    0.00
+  Max:    50.00
+  Skew:   1.427
+Normalised Score:
+  Mean:   0.4817
+  Median: 0.4792
+  Mode:   0.6667
+  Std:    0.1769
+  Min:    0.0000
+  Max:    1.0000
+  Skew:   0.107
+Normal Fit (Absolute):    μ = 9.17, σ = 5.74
+Normal Fit (Normalised):  μ = 0.4817, σ = 0.1769
+
+=== Sensitivity Analysis ===
+=== 5x5 Matrix Sensitivity ===
+Noise Level 0.1%: MAE = 0.0168 ± 0.0041
+Noise Level 0.5%: MAE = 0.0182 ± 0.0035
+Noise Level 1.0%: MAE = 0.0186 ± 0.0034
+Noise Level 2.0%: MAE = 0.0208 ± 0.0040
+Noise Level 5.0%: MAE = 0.0306 ± 0.0056
+5x5 Model sensitivity: LOW
+
+=== 7x7 Matrix Sensitivity ===
+Noise Level 0.1%: MAE = 0.0103 ± 0.0022
+Noise Level 0.5%: MAE = 0.0104 ± 0.0016
+Noise Level 1.0%: MAE = 0.0115 ± 0.0020
+Noise Level 2.0%: MAE = 0.0133 ± 0.0026
+Noise Level 5.0%: MAE = 0.0224 ± 0.0031
+ 7x7 Model sensitivity: LOW
+
+=== Sensitivity Comparison ===
+Noise Level | 5x5 MAE    | 7x7 MAE    | More Robust
+--------------------------------------------------
+     0.1%   |   0.0168   |   0.0103   | 7x7
+     0.5%   |   0.0182   |   0.0104   | 7x7
+     1.0%   |   0.0186   |   0.0115   | 7x7
+     2.0%   |   0.0208   |   0.0133   | 7x7
+     5.0%   |   0.0306   |   0.0224   | 7x7
+
+Overall Assessment:
+  5x5 matrix: Robust (MAE = 0.0306)
+  7x7 matrix: Robust (MAE = 0.0224)
+  Conclusion: Both models show similar sensitivity to noise
+
+=== Bootstrap Analysis ===
+Number of samples: 100
+5x5 Matrix Variability:
+  Mean absolute difference from bootstrap mean: 0.0023
+  Average standard deviation across entries: 0.0201
+  Most variable transition: (np.int64(2), np.int64(2))
+  Max standard deviation: 0.0623
+7x7 Matrix Variability:
+  Average standard deviation across entries: 0.0109
+  Max standard deviation: 0.0623
+
+=== Chi-Squared Tests ===
+5x5 Matrix (Observed vs Predicted):
+  Chi-squared statistic: 88.6514
+  Degrees of freedom: 23
+  P-value: 0.000000
+  Number of cells tested: 24
+  Result: Difference is highly significant (p < 0.001)
+
+7x7 Matrix (Observed vs Predicted):
+  Chi-squared statistic: 70.8639
+  Degrees of freedom: 29
+  P-value: 0.000023
+  Number of cells tested: 30
+  Result: Difference is highly significant (p < 0.001)
+
+
+Train vs Test 5x5 Matrix:
+  Interpretation: Overfitting likely
+
+=== Missing Events Analysis ===
+
+5x5 Matrix - Transitions that never occurred in training data:
+Total missing: 1
+  HygieneArea → NearPatient
+
+Categorisation:
+  Probably impossible: 0
+  Rare but possible: 1
+    HygieneArea → NearPatient
+
+7x7 Matrix - Missing transitions: 19
+
+=== Do Simulations Predict Missing Events? ===
+Events that were missing in training but predicted by 5x5 simulations: 0
+  None - simulations only predict events that were observed in training
+
+Events that were missing in training but predicted by 7x7 simulations: 0
+  None - simulations only predict events observed in training
+
+=== Summary of Hellinger Distances ===
+
+Method: 5x5_fixed
+  Care Period Lengths: 0.7720
+  Equipment: 0.3807
+  Patient: 0.2841
+  NearPatient: 0.1780
+  FarPatient: 0.3096
+  HygieneArea: 0.4972
+  Average Hellinger Distance (Category Visits): 0.3299
+
+Method: 5x5_fitted
+  Care Period Lengths: 0.2466
+  Equipment: 0.2771
+  Patient: 0.3065
+  NearPatient: 0.1675
+  FarPatient: 0.3573
+  HygieneArea: 0.4207
+  Average Hellinger Distance (Category Visits): 0.3058
+
+Method: 7x7_terminating
+  Care Period Lengths: 0.3506
+  In: 0.3785
+  Equipment: 0.2095
+  Patient: 0.3641
+  NearPatient: 0.1677
+  FarPatient: 0.3445
+  HygieneArea: 0.2378
+  Out: 0.1763
+  Average Hellinger Distance (Category Visits): 0.2683
+

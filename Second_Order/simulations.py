@@ -1,0 +1,488 @@
+# --------------------------------------------------------------------------------------------------------------------------------------
+# Simulation and Predicted Transition Probability Matrices
+# --------------------------------------------------------------------------------------------------------------------------------------
+
+
+# --------------------------------------------------------------------------------------------------------------------------------------
+# Packages
+# --------------------------------------------------------------------------------------------------------------------------------------
+
+import numpy as np
+import pandas as pd
+import time
+
+from scipy import stats
+
+from config import main_categories, all_categories, n_simulations
+from data_loader import df_train, train_ids
+from transition_matrices import *
+
+
+# mc = - Stores the transition matrix (DataFrame) as mc (Markov Chain)
+mc_main = observed_main
+mc_all = observed_all
+
+
+# --------------------------------------------------------------------------------------------------------------------------------------
+# Define Functions for Predicted Transition Matrices
+# --------------------------------------------------------------------------------------------------------------------------------------
+
+def simulate_25x5(mc, start_probs, categories, length):
+    """
+    Simulates one care period for the 5 main categories.
+    Starts with weighted random state pair.
+    Calculates next state based on (previous, current) state pair.  
+    Runs for fixed length.
+    """
+    # Pick a starting pair using weighted probabilities
+    start_pair = start_probs.index[np.random.choice(len(start_probs), p=start_probs.values)]
+
+    # Start the chain
+    chain = [start_pair[0], start_pair[1]]
+
+    while len(chain) < length:
+
+        # Current pair = (prev state, curr state)
+        state_pair = (chain[-2], chain[-1])
+
+        # Check pair exists in matrix
+        if state_pair in mc.index:
+            probs = mc.loc[[state_pair]].iloc[0]
+            # Normalise for rounding errors
+            probs = probs / probs.sum() if probs.sum() > 0 else probs
+            next_state = np.random.choice(mc.columns, p=probs.values)
+        else:
+            # If pair not in training data, pick randomly
+            next_state = np.random.choice(categories)
+
+        chain.append(next_state)
+    
+    return chain
+
+def simulate_49x7(mc, start_probs, categories):
+    """
+    Simulates one care period for all 7 categories.
+    Starts with weighted random state.
+    Calculates next state based on (previous, current) state pair. 
+    Ends when terminating state "Out" is reached.
+    Length is determined by probabilities.
+    """
+    # Pick starting pair using weighted probabilities
+    start_pair = start_probs.index[np.random.choice(len(start_probs), p=start_probs.values)]
+    
+    # Start the chain
+    chain = [start_pair[0], start_pair[1]]
+
+    # Continue until "Out" with max length
+    max_length = 100
+    while chain[-1] != "Out" and len(chain) < max_length:
+        state_pair = (chain[-2], chain[-1])
+
+        # Check pair exists in matrix
+        if state_pair in mc.index:
+            probs = mc.loc[[state_pair]].iloc[0]
+            # Normalise for rounding errors
+            probs = probs / probs.sum() if probs.sum() > 0 else probs
+            next_state = np.random.choice(mc.columns, p=probs.values)
+        else:
+            # If pair not in training data, pick randomly
+            next_state = np.random.choice(categories)
+
+        chain.append(next_state)
+
+    return chain
+
+
+# --------------------------------------------------------------------------------------------------------------------------------------
+# Sequence Length Distribution Fitting
+# --------------------------------------------------------------------------------------------------------------------------------------
+
+def fit_length_distribution(real_lengths):
+    """
+    Fit and compare distributions for care episode lengths.
+    Tests Poisson and Negative Binomial distributions.
+    """
+    # Calculate basic statistics
+    mean_len = np.mean(real_lengths)
+    var_len = np.var(real_lengths)
+    
+    # Store statistics for later printing
+    length_stats = {
+        'min': real_lengths.min(),
+        'max': real_lengths.max(),
+        'mean': mean_len,
+        'variance': var_len,
+        'var_mean_ratio': var_len/mean_len
+    }
+    
+    distributions = {}
+    
+    # Poisson Distribution
+    # Good when variance = mean
+    lambda_param = mean_len
+    poisson_ll = np.sum(stats.poisson.logpmf(real_lengths, lambda_param))
+    distributions['poisson'] = {
+        'params': (lambda_param,),
+        'loglik': poisson_ll,
+        'aic': 2 * 1 - 2 * poisson_ll,  # 2k - 2ln(L), k=1 parameter
+        'name': f'Poisson(λ={lambda_param:.2f})'
+    }
+    
+    # Negative Binomial Distribution  
+    # Good when variance > mean (over-dispersed)
+    warnings = []
+    if var_len > mean_len:
+        # Method of moments estimation
+        p_nb = mean_len / var_len
+        n_nb = (mean_len ** 2) / (var_len - mean_len)
+        
+        if n_nb > 0 and 0 < p_nb < 1:
+            try:
+                nbinom_ll = np.sum(stats.nbinom.logpmf(real_lengths, n_nb, p_nb))
+                distributions['nbinom'] = {
+                    'params': (n_nb, p_nb),
+                    'loglik': nbinom_ll,
+                    'aic': 2 * 2 - 2 * nbinom_ll,  # k=2 parameters
+                    'name': f'NegBinom(n={n_nb:.2f}, p={p_nb:.3f})'
+                }
+            except:
+                warnings.append("Could not fit Negative Binomial")
+    
+    # Find best distribution (lowest AIC)
+    if distributions:
+        best_dist = min(distributions.keys(), key=lambda x: distributions[x]['aic'])
+    else:
+        best_dist = 'poisson'  # Fallback
+    
+    return distributions, best_dist, length_stats, warnings
+
+def calculate_goodness_of_fit(real_lengths, distribution, params):
+    """
+    Calculate Kolmogorov-Smirnov test for goodness of fit.
+    """
+    if distribution == 'poisson':
+        D_stat, p_value = stats.kstest(real_lengths, lambda x: stats.poisson.cdf(x, params[0]))
+    elif distribution == 'nbinom':
+        D_stat, p_value = stats.kstest(real_lengths, lambda x: stats.nbinom.cdf(x, params[0], params[1]))
+    else:
+        return None, None
+    
+    return D_stat, p_value
+
+def sample_fitted_lengths(distributions, best_dist, n_samples, fallback_mean):
+    """
+    Sample lengths from the best-fitting distribution.
+    """
+    if best_dist not in distributions:
+        warning = f"Warning: {best_dist} not available, using Poisson"
+        return stats.poisson.rvs(fallback_mean, size=n_samples), warning
+    
+    dist_info = distributions[best_dist]
+    params = dist_info['params']
+    
+    if best_dist == 'poisson':
+        return stats.poisson.rvs(params[0], size=n_samples), None
+    elif best_dist == 'nbinom':
+        return stats.nbinom.rvs(params[0], params[1], size=n_samples), None
+    elif best_dist == 'geom':
+        return stats.geom.rvs(params[0], size=n_samples), None
+
+
+# ----------------------------------
+# Fit Distribution
+# ----------------------------------
+
+# Analyse real care episode lengths
+real_lengths = df_train.groupby("ActivityID").size().values
+
+# Fit distributions
+distributions, best_dist, length_stats, fitting_warnings = fit_length_distribution(real_lengths)
+
+# Goodness of fit test
+goodness_of_fit = None
+if best_dist in distributions:
+    D_stat, p_value = calculate_goodness_of_fit(
+        real_lengths, 
+        best_dist, 
+        distributions[best_dist]['params']
+    )
+    
+    if D_stat is not None:
+        goodness_of_fit = {
+            'D_stat': D_stat,
+            'p_value': p_value,
+            'good_fit': p_value > 0.05
+        }
+
+# Generate fitted lengths for simulations
+fitted_lengths, sampling_warning = sample_fitted_lengths(
+    distributions, best_dist, n_simulations, length_stats['mean']
+)
+
+# Store all fitted length statistics
+fitted_stats = {
+    'min': fitted_lengths.min(),
+    'max': fitted_lengths.max(),
+    'mean': fitted_lengths.mean()
+}    
+   
+
+# --------------------------------------------------------------------------------------------------------------------------------------
+# Run Simulations
+# --------------------------------------------------------------------------------------------------------------------------------------
+
+avg_length = int(df_train.groupby("ActivityID").size().mean())
+
+
+# 25x5 Fixed Length
+
+start_time = time.time()
+
+# Collect chains and transitions from 25x5 fixed length simulations
+fixed_chains = []
+transitions_25x5 = []#
+
+for _ in range(n_simulations):
+    chain = simulate_25x5(observed_main, train_start_probs_main, main_categories, avg_length)
+
+     # Save full chain for later sequence analysis
+    fixed_chains.append(chain)
+
+    # Save transitions for predicted matrix
+    for i in range(len(chain) - 2):
+        transitions_25x5.append({"Previous": chain[i], "Current": chain[i + 1], "Next": chain[i + 2]})
+
+
+time_25x5 = time.time() - start_time
+
+
+# 49x7 Terminating State
+
+start_time = time.time()
+
+# Collect chains and transitions from 49x7 terminating-state simulations
+terminating_chains = []
+transitions_49x7 = []
+
+for _ in range(n_simulations):
+    chain = simulate_49x7(observed_all, train_start_probs_all, all_categories)
+
+    # Save full chain for later sequence analysis
+    terminating_chains.append(chain)
+
+    # Save transitions for predicted matrix
+    for i in range(len(chain) - 2):
+        transitions_49x7.append({"Previous": chain[i], "Current": chain[i + 1], "Next": chain[i + 2]})
+
+time_49x7 = time.time() - start_time
+
+
+# 25x5 Fitted Length
+start_time = time.time()
+
+fitted_chains = []
+transitions_fitted_25x5 = []
+
+for length in fitted_lengths:
+    sim_length = max(2, int(length))
+    chain = simulate_25x5(observed_main, train_start_probs_main, main_categories, sim_length)
+
+    fitted_chains.append(chain)
+
+    for i in range(len(chain) - 2):
+        transitions_fitted_25x5.append({"Previous": chain[i], "Current": chain[i + 1], "Next": chain[i + 2]})
+
+time_fitted = time.time() - start_time
+
+
+# --------------------------------------------------------------------------------------------------------------------------------------
+# Calculate Predicted Matrices amd Simulations
+# --------------------------------------------------------------------------------------------------------------------------------------
+# Note: only transitions that exist in the training data are printed in the matrices. 
+
+# Convert to DataFrames
+df_sim_25x5 = pd.DataFrame(transitions_25x5)
+df_sim_49x7 = pd.DataFrame(transitions_49x7)
+df_sim_fitted = pd.DataFrame(transitions_fitted_25x5)
+
+# Calculate predicted matrices
+predicted_fixed_25x5 = calculate_transition_matrix(
+    df_sim_25x5, "Previous", "Current", "Next", main_categories
+)
+predicted_terminating_49x7 = calculate_transition_matrix(
+    df_sim_49x7, "Previous", "Current", "Next", all_categories 
+)
+predicted_fitted_25x5 = calculate_transition_matrix(
+    df_sim_fitted, "Previous", "Current", "Next", main_categories 
+)
+
+
+# --------------------------------------------------------------------------------------------------------------------------------------
+# Example Chains
+# --------------------------------------------------------------------------------------------------------------------------------------
+
+main_sim = simulate_25x5(mc_main, train_start_probs_main, main_categories, avg_length)
+
+all_sim = simulate_49x7(mc_all, train_start_probs_all, all_categories)
+
+fitted_sim = simulate_25x5(observed_main, train_start_probs_main, main_categories, max(2, int(fitted_lengths[0])))
+
+
+# --------------------------------------------------------------------------------------------------------------------------------------
+# Calculate MAE with Proper Alignment
+# --------------------------------------------------------------------------------------------------------------------------------------
+# Mean Absolute Error measures how far predicted numbers are from real numbers
+# Proper alignment penalises model for missing transitions that occurred in the real data
+
+def calculate_mae_safe(observed, predicted):
+    """
+    Calculate MAE with proper alignment.
+    Only evaluates on transitions that exist in observed data.
+    Predicted values for missing pairs default to 0.
+    """
+    pred_aligned = predicted.reindex(
+        index=observed.index, 
+        columns=observed.columns, 
+        fill_value=0
+    )
+    mae = np.abs(observed - pred_aligned).mean().mean()
+    return mae
+
+# Calculate MAE for all three approaches
+mae_fixed = calculate_mae_safe(observed_main, predicted_fixed_25x5)
+mae_terminating = calculate_mae_safe(observed_all, predicted_terminating_49x7)
+mae_fitted = calculate_mae_safe(observed_main, predicted_fitted_25x5)
+
+
+# ----------------------------------
+# Dictionary for the 3 methods
+# ----------------------------------
+
+simulation_methods = {
+    "25x5_fixed": {
+        "name": "25x5 fixed length",
+        "chains": fixed_chains,
+        "predicted_matrix": predicted_fixed_25x5,
+        "observed_matrix": observed_main,
+        "categories": main_categories,
+        "mae": mae_fixed
+    },
+    "25x5_fitted": {
+        "name": "25x5 fitted length",
+        "chains": fitted_chains,
+        "predicted_matrix": predicted_fitted_25x5,
+        "observed_matrix": observed_main,
+        "categories": main_categories,
+        "mae": mae_fitted
+    },
+    "49x7_terminating": {
+        "name": "49x7 terminating state",
+        "chains": terminating_chains,
+        "predicted_matrix": predicted_terminating_49x7,
+        "observed_matrix": observed_all,
+        "categories": all_categories,
+        "mae": mae_terminating
+    }
+}
+
+
+# --------------------------------------------------------------------------------------------------------------------------------------
+# Reporting
+# --------------------------------------------------------------------------------------------------------------------------------------
+
+# Run Simulations
+print("=== Simulations ====")
+print(f"Running {n_simulations} simulations for each method...")
+print(f"Average Care Period Length: {avg_length}")
+print()
+print(f"25x5 Fixed length Simulations:{time_25x5:.2f} seconds")
+print(f"49x7 Terminating State Simulations: {time_49x7:.2f} seconds")
+print(f"49x7 Fitted Length Simulations: {time_fitted:.2f} seconds")
+print()
+
+# Sequence Length Distribution Fitting
+print("=== Sequence Length Distribution Fitting ===")
+print(f"Observed lengths: min={length_stats['min']}, max={length_stats['max']}")
+print(f"Mean={length_stats['mean']:.2f}, Variance={length_stats['variance']:.2f}")
+print(f"Variance/Mean ratio: {length_stats['var_mean_ratio']:.2f} (>1 suggests over-dispersion)")
+print()
+for warning in fitting_warnings:
+    print(f"  Warning: {warning}")
+print()
+print("Distribution comparison (AIC = Akaike Information Criterion, lower is better):")
+for name, info in distributions.items():
+    marker = " <-- BEST FIT" if name == best_dist else ""
+    print(f"  {info['name']}: AIC = {info['aic']:.2f}{marker}")
+print()
+if goodness_of_fit:
+    print(f"Goodness of fit test (Kolmogorov-Smirnov):")
+    print(f"  D-statistic: {goodness_of_fit['D_stat']:.4f}")
+    print(f"  P-value: {goodness_of_fit['p_value']:.4f}")
+    print(f"  Result: {'Good fit' if goodness_of_fit['good_fit'] else 'Poor fit'} (α=0.05)")
+print()
+print(f"=== Simulations with Fitted Length Distribution ===")
+print(f"Using: {distributions[best_dist]['name']}")
+print(f"Sampled lengths: min={fitted_stats['min']}, max={fitted_stats['max']}, mean={fitted_stats['mean']:.2f}")
+print()
+if sampling_warning:
+    print(sampling_warning)
+print()
+print(f"Fitted-length simulations completed in {time_fitted:.2f} seconds")
+print()
+
+# Calculate Predicted Matrices amd Simulations
+print("=== Predicted 25x5 Matrix (from fixed-length simulations) ===")
+print(predicted_fixed_25x5.round(3).to_string())
+print()
+print("=== Predicted 49x7 Matrix (from terminatnig-state simulations) ===")
+print(predicted_terminating_49x7.round(3).to_string())
+print()
+print("=== Predicted 5x5 Matrix (from fitted-length simulations) ===")
+print(predicted_fitted_25x5.round(3).to_string())
+print()
+
+# Example Chains
+print("25x5 Simulation")
+print(main_sim)
+print(f"Length: {len(main_sim)}")
+print(f"Length: {len(main_sim)}")
+print(f"Started with: {main_sim[0]}")
+print(f"Ended with: {main_sim[-1]}")
+print()
+print("49x7 Simulation")
+print(all)
+print(all_sim)
+print(f"Length: {len(all_sim)}")
+print(f"Started with: {all_sim[0]}")
+print(f"Ended with: {all_sim[-1]}")
+print()
+print("25x5 Simulation (Fitted Distribution)")
+print(fitted_sim)
+print(f"Length: {len(fitted_sim)}")
+print(f"Started with: {fitted_sim[0]}")
+print(f"Ended with: {fitted_sim[-1]}")
+print()
+
+# Calculate MAE with Proper Alignment
+print(f"=== Comparison of All Three Simulation Approaches ===")
+print(f"  (a) Fixed length MAE (25x5):        {mae_fixed:.4f}")
+print(f"  (b) Terminating state MAE (49x7):   {mae_terminating:.4f}")
+print(f"  (c) Fitted length MAE (25x5):       {mae_fitted:.4f}")
+print()
+print(f"Note: Comparing 25x5 vs 49x7 is not strictly like-for-like")
+print(f"  because 49x7 has more parameters ({49*7} vs {25*5}) and includes")
+print(f"  terminating states (In/Out). However, the 7x7 MAE of {mae_terminating:.4f}")
+print(f"  shows how well the terminating model performs overall.")
+print()
+
+# Dictionary for the 3 methods
+print("\n=== Dictionary Inventory ===")
+print(f"{'Method':<25} | {'Chains':<10} | {'Avg. Chain Len':<15} | {'MAE':<10}")
+print("-" * 65)
+for method_key, data in simulation_methods.items():
+    # Calculate average chain length for this specific method
+    avg_len = np.mean([len(c) for c in data["chains"]])
+    n_chains = len(data["chains"])
+    
+    print(f"{data['name']:<25} | {n_chains:<10} | {avg_len:<15.2f} | {data['mae']:<10.4f}")
+print()
