@@ -36,3 +36,4 @@ The first-order terminating-state model is recommended for datasets of this size
 3. Extend the research to different ward types, care procedures, or patient room configurations.
 4. Incorporate surface and air contamination levels into the transition model to predict pathogen exposure.
 5. Analyse hand hygiene patterns from the transition sequences to identify high-risk contact behaviours.
+
