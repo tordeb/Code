@@ -422,79 +422,71 @@ plt.show()
 
 def plot_convergence(convergence_results, target_transition, save_path=None):
     """
-    Plot convergence of transition probability
+    Plot how a transition probability changes as more training episodes are added.
+    Uses the same confidence interval and stability rule as the printed assessment.
     """
     sample_sizes = [r['sample_size'] for r in convergence_results]
     probabilities = [r['probability'] for r in convergence_results]
-    
+
     plt.figure(figsize=(10, 6))
     plt.plot(sample_sizes, probabilities, 'b-o', linewidth=2, markersize=6)
-    
-    # Add confidence intervals (approximate)
-    # For binomial proportion: CI ≈ p ± 1.96*sqrt(p(1-p)/n)
+
+    # 95% confidence interval at each point (Wilson method, same as Table 5)
+    # Uses from_count: how many times we were in the starting state
     lower_ci = []
     upper_ci = []
-    
     for result in convergence_results:
-        p = result['probability']
-        n = result['total_transitions']
-        if n > 0 and p > 0:
-            se = np.sqrt(p * (1 - p) / n)  # Standard error
-            margin = 1.96 * se  # 95% confidence interval
-            lower_ci.append(max(0, p - margin))
-            upper_ci.append(min(1, p + margin))
-        else:
-            lower_ci.append(0)
-            upper_ci.append(0)
-    
-    # Plot confidence band
-    plt.fill_between(sample_sizes, lower_ci, upper_ci, alpha=0.2, color='blue', 
+        lo, hi = wilson_ci(result['target_count'], result['from_count'])
+        lower_ci.append(lo)
+        upper_ci.append(hi)
+
+    plt.fill_between(sample_sizes, lower_ci, upper_ci, alpha=0.2, color='blue',
                      label='95% Confidence Interval')
-    
-    # Final value line to converge to
+
+    # Final estimate line
     final_prob = probabilities[-1]
-    plt.axhline(y=final_prob, color='red', linestyle='--', alpha=0.7, 
+    plt.axhline(y=final_prob, color='red', linestyle='--', alpha=0.7,
                 label=f'Final Estimate: {final_prob:.4f}')
-    
+
     plt.xlabel('Number of Training Episodes', fontsize=12)
     plt.ylabel(f'P({target_transition[1]} | {target_transition[0]})', fontsize=12)
     plt.title(f'Convergence of Transition Probability\n{target_transition[0]} → {target_transition[1]}', fontsize=14)
     plt.grid(True, alpha=0.3)
     plt.legend()
-    
-    # Add annotation about stability
-    if len(probabilities) >= 3:
-        last_three = probabilities[-3:]
-        std_last_three = np.std(last_three)
-        if std_last_three < 0.01:
-            stability_text = "STABLE (σ < 0.01)"
-            text_color = 'green'
-        elif std_last_three < 0.05:
-            stability_text = "MODERATE (σ < 0.05)"
-            text_color = 'orange'
-        else:
-            stability_text = "UNSTABLE (σ ≥ 0.05)"
-            text_color = 'red'
-        
-        plt.text(0.02, 0.98, f'Stability: {stability_text}', 
-                transform=plt.gca().transAxes, fontsize=10, color=text_color,
-                bbox=dict(boxstyle='round', facecolor='white', edgecolor=text_color))
-    
+
+    # Stability badge: uses the SAME function as the printout
+    stability_text = assess_stability(convergence_results)
+
+    if stability_text.startswith("STABLE"):
+        text_color = 'green'
+    elif stability_text.startswith("MODERATE"):
+        text_color = 'orange'
+    elif stability_text.startswith("UNSTABLE"):
+        text_color = 'red'
+    else:  # INSUFFICIENT DATA
+        text_color = 'grey'
+
+    plt.text(0.02, 0.98, f'Stability: {stability_text}',
+             transform=plt.gca().transAxes, fontsize=10, color=text_color,
+             verticalalignment='top',
+             bbox=dict(boxstyle='round', facecolor='white', edgecolor=text_color))
+
     plt.tight_layout()
-    
+
     if save_path:
         plt.savefig(save_path, dpi=300)
-    
+
     plt.show()
+
 
 # Plot main categories convergence
 plot_convergence(
-    convergence_main, 
-    target_main, 
+    convergence_main,
+    target_main,
     f"{OUTPUT_DIR}/convergence_main_categories.png"
 )
 
-# Plot all categories convergence  
+# Plot all categories convergence
 plot_convergence(
     convergence_all,
     target_all,
