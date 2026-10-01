@@ -204,17 +204,21 @@ def convergence_analysis(df_train, train_ids, categories, target_transition=None
                 (subset_filtered["SurfaceCategories"] == target_transition[0]) &
                 (subset_filtered["Next_Category"] == target_transition[1])
             ])
-            
+
+        from_count = (subset_filtered["SurfaceCategories"] == target_transition[0]).sum()
+       
         else:
             target_prob = 0
             total_transitions = 0
             target_count = 0
+            from_count = 0
         
         convergence_results.append({
             'sample_size': size,
             'probability': target_prob,
             'total_transitions': total_transitions,
             'target_count': target_count,
+            'from_count': from_count,
             'episodes': len(subset_ids)
         })
                 
@@ -230,38 +234,64 @@ convergence_all, target_all = convergence_analysis(
     df_train, train_ids, all_categories, ("In", "Equipment")
 )
 
+# Confidence interval
+def wilson_ci(k, n, z=1.96):
+    """95% confidence interval for k successes out of n."""
+    if n == 0:
+        return 0.0, 1.0
+    p = k / n
+    denom = 1 + z**2 / n
+    centre = (p + z**2 / (2 * n)) / denom
+    half = z * np.sqrt(p * (1 - p) / n + z**2 / (4 * n**2)) / denom
+    return centre - half, centre + half
+
 # Assess stability
-def assess_stability(results, threshold=0.01):
-    """Check if probability has stabilized."""
-    if len(results) < 3:
-        return "Insufficient data"
-    
-    last_three_probs = [r['probability'] for r in results[-3:]]
-    std_dev = np.std(last_three_probs)
-    
-    if std_dev < threshold:
-        return f"STABLE (σ = {std_dev:.4f})"
+def assess_stability(results, max_rel_width=0.5, max_drift=0.10, min_count=5):
+    """ Decides stable/moderate/unstable/insufficient data. Looks at the final estimate (all training episodes)."""
+    if len(results) < 2:
+        return "INSUFFICIENT DATA"
+
+    final = results[-1]
+    p = final['probability']       # the estimate
+    k = final['target_count']      # times the transition happened
+    n = final['from_count']        # times we were in the starting state
+
+    # Check 1: seen often enough?
+    if p == 0 or k < min_count:
+        return f"INSUFFICIENT DATA (observed {k} times)"
+
+    # Check 2: is the uncertainty small compared to the estimate?
+    lo, hi = wilson_ci(k, n)
+    rel_width = (hi - lo) / p
+
+    # Check 3: did the estimate stop moving at the end?
+    drift = abs(p - results[-2]['probability']) / p
+
+    detail = f"rel. CI width = {rel_width:.2f}, drift = {drift:.0%}"
+    if rel_width < max_rel_width and drift < max_drift:
+        return f"STABLE ({detail})"
+    elif rel_width < 2 * max_rel_width:
+        return f"MODERATE ({detail})"
     else:
-        return f"UNSTABLE (σ = {std_dev:.4f})"
+        return f"UNSTABLE ({detail})"
 
 # Estimate minimum required episodes
-def estimate_minimum_episodes(results, stability_threshold=0.01):
-    """Estimate minimum episodes needed for stable estimates."""
-    for i in range(2, len(results)):
-        last_three_probs = [r['probability'] for r in results[i-2:i+1]]
-        if np.std(last_three_probs) < stability_threshold:
-            return results[i]['sample_size']
-    return results[-1]['sample_size']  # Needs more data
+def estimate_minimum_episodes(results):
+    """First episode count where the estimate becomes STABLE. None if it never does."""
+    for i in range(2, len(results) + 1):
+        if assess_stability(results[:i]).startswith("STABLE"):
+            return results[i - 1]['sample_size']
+    return None
+
 
 stability_main = assess_stability(convergence_main)
 stability_all = assess_stability(convergence_all)
 min_episodes_main = estimate_minimum_episodes(convergence_main)
 min_episodes_all = estimate_minimum_episodes(convergence_all)
 
-# Is current data sufficient
-sufficient_main = "YES" if len(train_ids) >= min_episodes_main else "NO"
-sufficient_all = "YES" if len(train_ids) >= min_episodes_all else "NO"
-
+# Is the data sufficient?
+sufficient_main = "YES" if min_episodes_main is not None else "NO"
+sufficient_all = "YES" if min_episodes_all is not None else "NO"
 
 # --------------------------------------------------------------------------------------------------------------------------------------
 # Report
@@ -297,36 +327,40 @@ print(test_matrix_all.round(3).to_string())
 print()
 
 # Convergence Analysis
-print(f"=== Convergence Analysis ===")
+print("=== Convergence Analysis ===")
 print(f"Tracking transition (Main): {target_main[0]} → {target_main[1]}")
 print(f"Tracking transition (All): {target_all[0]} → {target_all[1]}")
 print()
-print(f"Main Categories Convergence:")
+
+print("Main Categories Convergence:")
 for result in convergence_main:
     print(
         f"  {result['episodes']:4d} episodes: "
         f"P = {result['probability']:.4f} "
-        f"({result['target_count']:3d}/{result['total_transitions']:4d} transitions)"
+        f"({result['target_count']:3d}/{result['from_count']:4d} transitions)"
     )
 print()
-print(f"All Categories Convergence:")
+
+print("All Categories Convergence:")
 for result in convergence_all:
     print(
         f"  {result['episodes']:4d} episodes: "
         f"P = {result['probability']:.4f} "
-        f"({result['target_count']:3d}/{result['total_transitions']:4d} transitions)"
+        f"({result['target_count']:3d}/{result['from_count']:4d} transitions)"
     )
 print()
-print(f"=== Convergence Assessment ===")
+
+print("=== Convergence Assessment ===")
 print(f"Main categories ({target_main[0]} → {target_main[1]}): {stability_main}")
 print(f"All categories ({target_all[0]} → {target_all[1]}): {stability_all}")
 print()
-print(f"Minimum episodes for stability:")
-print(f"  Main categories: ~{min_episodes_main} episodes")
-print(f"  All categories: ~{min_episodes_all} episodes")
+
+print("Minimum episodes for stability:")
+print(f"  Main categories: {min_episodes_main if min_episodes_main else 'not reached'}")
+print(f"  All categories: {min_episodes_all if min_episodes_all else 'not reached'}")
 print(f"  Current dataset: {len(train_ids)} episodes")
 print()
-print(f"\nIs current data sufficient?")
+
+print("Is current data sufficient?")
 print(f"  Main categories: {sufficient_main}")
 print(f"  All categories: {sufficient_all}")
-print()
