@@ -150,7 +150,7 @@ with open(output_file, "w") as f:
             print(
                 f"  {result['sample_size']:4d} episodes: "
                 f"P = {result['probability']:.4f} "
-                f"({result['target_count']:3d}/{result['total_transitions']:4d} transitions)")
+                f"({result['target_count']:3d}/{result['from_count']:4d} transitions)")
         print()
         print(f"All Categories Convergence:")
         print(f"Tracking transition (All)): {target_all[0]} → {target_all[1]} → {target_all[2]}")
@@ -158,15 +158,15 @@ with open(output_file, "w") as f:
             print(
                 f"  {result['sample_size']:4d} episodes: "
                 f"P = {result['probability']:.4f} "
-                f"({result['target_count']:3d}/{result['total_transitions']:4d} transitions)")
+                f"({result['target_count']:3d}/{result['from_count']:4d} transitions)")
         print()
         print(f"\n=== Convergence Assessment ===")
         print(f"Main categories ({target_main[0]} → {target_main[1]} → {target_main[2]}): {stability_main}")
         print(f"All categories ({target_all[0]} → {target_all[1]} → {target_all[2]}): {stability_all}")
         print()
         print(f"\nMinimum episodes for stability:")
-        print(f"  Main categories: ~{min_episodes_main} episodes")
-        print(f"  All categories: ~{min_episodes_all} episodes")
+        print(f"  Main categories: {min_episodes_main if min_episodes_main else 'not reached'}")
+        print(f"  All categories: {min_episodes_all if min_episodes_all else 'not reached'}")
         print(f"  Current dataset: {len(train_ids)} episodes")
         print()
         print(f"\nIs current data sufficient?")

@@ -151,7 +151,7 @@ with open(output_file, "w") as f:
             print(
                 f"  {result['episodes']:4d} episodes: "
                 f"P = {result['probability']:.4f} "
-                f"({result['target_count']:3d}/{result['total_transitions']:4d} transitions)"
+                f"({result['target_count']:3d}/{result['from_count']:4d} transitions)"
             )
         print()
         print(f"All Categories Convergence:")
@@ -159,7 +159,7 @@ with open(output_file, "w") as f:
             print(
                 f"  {result['episodes']:4d} episodes: "
                 f"P = {result['probability']:.4f} "
-                f"({result['target_count']:3d}/{result['total_transitions']:4d} transitions)"
+                f"({result['target_count']:3d}/{result['from_count']:4d} transitions)"
             )
         print()
         print(f"=== Convergence Assessment ===")

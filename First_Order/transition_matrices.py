@@ -205,8 +205,8 @@ def convergence_analysis(df_train, train_ids, categories, target_transition=None
                 (subset_filtered["Next_Category"] == target_transition[1])
             ])
 
-        from_count = (subset_filtered["SurfaceCategories"] == target_transition[0]).sum()
-       
+            from_count = (subset_filtered["SurfaceCategories"] == target_transition[0]).sum()
+
         else:
             target_prob = 0
             total_transitions = 0
@@ -258,7 +258,7 @@ def assess_stability(results, max_rel_width=0.5, max_drift=0.10, min_count=5):
 
     # Check 1: seen often enough?
     if p == 0 or k < min_count:
-        return f"INSUFFICIENT DATA (observed {k} times)"
+        return f"INSUFFICIENT DATA (observed {k} time{'s' if k != 1 else ''})"
 
     # Check 2: is the uncertainty small compared to the estimate?
     lo, hi = wilson_ci(k, n)
