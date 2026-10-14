@@ -2,10 +2,12 @@
 
 These notes explain what each file in `src/` does and how it works, for both the first-order and the second-order model.
 
-Both models are run by the same code. Change orders through `ORDER` in `config.py`:
+Both models are run by the same code. Choose the order with `--order` when running `main.py`; it is passed to `ORDER` in `config.py`:
 
 - **First-order (`ORDER = 1`):** the next state depends only on the current state, `P(next | current)`.
 - **Second-order (`ORDER = 2`):** the next state depends on the previous and current state, `P(next | previous, current)`.
+
+The **history** is the state(s) the next state depends on: one state for first-order, a pair of states for second-order.
 
 # File Structure
 
