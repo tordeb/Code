@@ -15,9 +15,8 @@ import time
 from Levenshtein import distance
 from Levenshtein import ratio
 from scipy import stats
-from scipy.stats import chisquare
 
-from config import ORDER, MAIN_LABEL, ALL_LABEL, main_categories, all_categories
+from config import ORDER, MAIN_LABEL, ALL_LABEL, SEED, main_categories, all_categories
 from data_loader import df_train, train_ids
 from transition_matrices import *
 from simulations import *
@@ -51,6 +50,14 @@ train_test_difference_all = observed_all - align_to(observed_all, test_matrix_al
 # Overall error
 train_test_mae_main = calculate_mae_safe(observed_main, test_matrix_main)
 train_test_mae_all = calculate_mae_safe(observed_all, test_matrix_all)
+
+# Predicted (simulated) matrix of each method vs the test matrix
+# (only histories observed in the test data are evaluated, as calculate_mae_safe aligns to its first argument)
+predicted_test_mae = {
+    "fixed": calculate_mae_safe(test_matrix_main, predicted_fixed_main),
+    "fitted": calculate_mae_safe(test_matrix_main, predicted_fitted_main),
+    "terminating": calculate_mae_safe(test_matrix_all, predicted_terminating_all),
+}
 
 
 # --------------------------------------------------------------------------------------------------------------------------------------
@@ -110,6 +117,14 @@ def summarise_scores(scores, normalised, time_sim, time_calc, n_simulated):
         'scores': scores,
         'normalised': normalised
     }
+
+
+def scramble(chains, rng):
+    """
+    Shuffle the order of the contacts within each chain. Each scrambled chain keeps the same length and the same mix
+    of categories as the original, but loses its sequential structure.
+    """
+    return [list(rng.permutation(chain)) for chain in chains]
 
 
 def compare_all_pairs(method_chains, score_function):
@@ -326,6 +341,28 @@ for method_name, method_data in simulation_methods.items():
     sw_results[method_name] = compare_all_pairs(method_data["chains"], smith_waterman_scores)
 
 
+# ----------------------------------
+# Scrambled baseline
+# ----------------------------------
+# A similarity score on its own does not say whether it is good: with only 5-7 categories, two unrelated sequences of
+# similar length are already fairly similar. So the same scores are calculated for scrambled versions of the
+# simulated chains (same length and mix of categories, order shuffled). If the model's chains score better than their
+# scrambled versions, the similarity comes from the order of contacts, not just from length and composition.
+# A separate random generator is used so the rest of the analysis is unaffected.
+
+N_SCRAMBLED = 200  # scrambled chains per method (the first 200 simulated chains, shuffled)
+scramble_rng = np.random.default_rng(SEED)
+
+scrambled_results = {}
+for method_name, method_data in simulation_methods.items():
+    scrambled_chains = scramble(method_data["chains"][:N_SCRAMBLED], scramble_rng)
+    scrambled_results[method_name] = {
+        name: compare_all_pairs(scrambled_chains, score_function)['mean_norm']
+        for name, score_function in (("levenshtein", levenshtein_scores), ("nw", needleman_wunsch_scores),
+                                     ("sw", smith_waterman_scores))
+    }
+
+
 # --------------------------------------------------------------------------------------------------------------------------------------
 # Sensitivity Analysis
 # --------------------------------------------------------------------------------------------------------------------------------------
@@ -530,79 +567,6 @@ def most_variable_transition(std_matrix, categories):
 
 most_variable_main = most_variable_transition(std_matrix_main, main_categories)
 most_variable_all = most_variable_transition(std_matrix_all, all_categories)
-
-
-# --------------------------------------------------------------------------------------------------------------------------------------
-# Chi-Squared Test
-# --------------------------------------------------------------------------------------------------------------------------------------
-# Tests if the differences between observed and predicted matrices are statistically significant or random variation
-
-def chi_squared_test_matrices(observed_matrix, predicted_matrix, matrix_name=""):
-    """
-    Tests if observed and predicted matrices are significantly different.
-
-    H0 (null hypothesis): The matrices are the same
-    H1 (alternative): The matrices are different
-
-    If p-value < 0.05, we reject H0 (matrices are significantly different)
-    """
-    # Align both matrices to the same full index before flattening
-    all_index = predicted_matrix.index.union(observed_matrix.index)
-    all_columns = predicted_matrix.columns.union(observed_matrix.columns)
-
-    observed_matrix = observed_matrix.reindex(index=all_index, columns=all_columns, fill_value=0)
-    predicted_matrix = predicted_matrix.reindex(index=all_index, columns=all_columns, fill_value=0)
-
-    # Flatten matrices to 1D arrays
-    observed_flat = observed_matrix.values.flatten()
-    predicted_flat = predicted_matrix.values.flatten()
-
-    # Convert probabilities to expected counts
-    total_transitions = 10000  # Arbitrary scaling factor
-
-    observed_counts = observed_flat * total_transitions
-    predicted_counts = predicted_flat * total_transitions
-
-    # Remove entries where expected count is zero
-    mask = predicted_counts > 0
-    observed_clean = observed_counts[mask]
-    predicted_clean = predicted_counts[mask]
-
-    # Normalise to same total
-    observed_total = observed_clean.sum()
-    predicted_total = predicted_clean.sum()
-    predicted_clean = predicted_clean * (observed_total / predicted_total)
-
-    # Chi-squared test
-    chi2_statistic, p_value = chisquare(observed_clean, predicted_clean)
-
-    # Degrees of freedom
-    df = len(observed_clean) - 1
-
-    return chi2_statistic, p_value, df, len(observed_clean)
-
-
-def significance_label(p_value):
-    if p_value < 0.001:
-        return "highly significant (p < 0.001)"
-    elif p_value < 0.01:
-        return "very significant (p < 0.01)"
-    elif p_value < 0.05:
-        return "significant (p < 0.05)"
-    return "not significant (p ≥ 0.05)"
-
-
-def chi_squared_result(observed_matrix, predicted_matrix, matrix_name):
-    chi2, p_val, dof, n_cells = chi_squared_test_matrices(observed_matrix, predicted_matrix, matrix_name)
-    return {'chi2': chi2, 'p_value': p_val, 'df': dof, 'n_cells': n_cells, 'significance': significance_label(p_val)}
-
-
-# Observed vs predicted
-chi2_main = chi_squared_result(observed_main, predicted_fixed_main, MAIN_LABEL)
-chi2_all = chi_squared_result(observed_all, predicted_terminating_all, ALL_LABEL)
-
-# Test train vs test matrices for validation
-chi2_train_test_main = chi_squared_result(observed_main, test_matrix_main, f"Train vs Test {MAIN_LABEL}")
 
 
 # --------------------------------------------------------------------------------------------------------------------------------------

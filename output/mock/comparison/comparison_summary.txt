@@ -35,6 +35,27 @@ Log-likelihood per transition (main categories), smoothing 0.5 | -1.2649 [-1.361
 Log-likelihood per transition (all categories), smoothing 0.1  | -1.3390 [-1.4199, -1.2581] | -1.2843 [-1.3821, -1.1866] |   +0.0547 [+0.0128, +0.0966] |      0.003 | Second
 Log-likelihood per transition (all categories), smoothing 0.5  | -1.3386 [-1.4179, -1.2593] | -1.2750 [-1.3549, -1.1950] |   +0.0636 [+0.0288, +0.0985] |    < 0.001 | Second
 
+Baselines (model minus baseline on the same held-out episode, mean [95% CI]):
+  zero-order = category frequencies only, ignoring order; scrambled = simulated chains with
+  their contacts shuffled (same length and mix of categories).
+Score                                                          |   Baseline |       First-order - baseline |      Second-order - baseline
+--------------------------------------------------------------------------------------------------------------------------------------------
+Log-likelihood per transition (main categories)                |    -1.4844 |   +0.2213 [+0.1358, +0.3069] |   +0.2773 [+0.2026, +0.3519]
+Next-contact accuracy (main categories)                        |     0.3422 |   +0.1821 [+0.0956, +0.2686] |   +0.2159 [+0.1370, +0.2948]
+Log-likelihood per transition (all categories)                 |    -1.7064 |   +0.3659 [+0.2992, +0.4325] |   +0.4193 [+0.3492, +0.4893]
+Next-contact accuracy (all categories)                         |     0.3075 |   +0.1836 [+0.1074, +0.2599] |   +0.2501 [+0.1782, +0.3221]
+Normalised Levenshtein, fixed (lower is better)                |     0.6083 |   -0.0010 [-0.0065, +0.0045] |   +0.0032 [-0.0032, +0.0096]
+Normalised Needleman-Wunsch, fixed                             |    -0.7002 |   +0.0026 [-0.0138, +0.0189] |   -0.0136 [-0.0324, +0.0051]
+Normalised Smith-Waterman, fixed                               |     0.2940 |   +0.0352 [+0.0284, +0.0420] |   +0.0433 [+0.0353, +0.0513]
+Normalised Levenshtein, fitted (lower is better)               |     0.6265 |   +0.0007 [-0.0044, +0.0058] |   +0.0050 [-0.0006, +0.0107]
+Normalised Needleman-Wunsch, fitted                            |    -0.9945 |   +0.0006 [-0.0155, +0.0167] |   -0.0202 [-0.0378, -0.0026]
+Normalised Smith-Waterman, fitted                              |     0.3167 |   +0.0370 [+0.0300, +0.0439] |   +0.0449 [+0.0373, +0.0525]
+Normalised Levenshtein, terminating (lower is better)          |     0.6537 |   -0.0947 [-0.1004, -0.0891] |   -0.1126 [-0.1182, -0.1071]
+Normalised Needleman-Wunsch, terminating                       |    -1.9065 |   +0.4261 [+0.4103, +0.4419] |   +0.4217 [+0.4044, +0.4391]
+Normalised Smith-Waterman, terminating                         |     0.3708 |   +0.0950 [+0.0886, +0.1014] |   +0.0998 [+0.0932, +0.1064]
+  (For Levenshtein a negative difference means the model is better; for the others, positive.)
+  The scrambled baseline value shown is the average of the two orders' scrambled chains.
+
 Perplexity (main / all categories): first-order 3.536 / 3.821, second-order 3.344 / 3.622 (lower is better)
 
 ======================================================================================================================
@@ -43,6 +64,7 @@ IN-SAMPLE CHECKS: simulated chains vs the training data they were generated from
 Method             | Metric                                             |  First-order | Second-order | Better
 ----------------------------------------------------------------------------------------------------------------------
 Fixed length       | MAE observed vs predicted matrix                   |       0.0058 |       0.0107 | First
+Fixed length       | MAE predicted vs test matrix                       |       0.1012 |       0.1854 | First
 Fixed length       | Hellinger distance: care period lengths            |       0.7720 |       0.7720 | -
 Fixed length       | Hellinger distance: category contacts (average)    |       0.3271 |       0.3237 | Second
 Fixed length       | Levenshtein distance (mean)                        |      16.1128 |      16.3753 | First
@@ -51,10 +73,16 @@ Fixed length       | Needleman-Wunsch score (mean)                      |      -
 Fixed length       | Needleman-Wunsch score, normalised (mean)          |      -0.6816 |      -0.7141 | First
 Fixed length       | Smith-Waterman score (mean)                        |      10.3804 |      10.4699 | Second
 Fixed length       | Smith-Waterman score, normalised (mean)            |       0.3328 |       0.3344 | Second
+Fixed length       | Scrambled baseline: Levenshtein, normalised        |       0.5975 |       0.6019 | -
+Fixed length       | Scrambled baseline: Needleman-Wunsch, normalised   |      -0.6744 |      -0.6822 | -
+Fixed length       | Scrambled baseline: Smith-Waterman, normalised     |       0.2985 |       0.2930 | -
 Fixed length       | Average simulated chain length                     |      19.0000 |      19.0000 | -
+Fixed length       | Share of chains shorter than shortest observed     |       0.0000 |       0.0000 | -
+Fixed length       | Share of chains longer than longest observed       |       0.0000 |       0.0000 | -
 Fixed length       | Steps from unseen histories (random fallback)      |            0 |            0 | -
 ----------------------------------------------------------------------------------------------------------------------
 Fitted length      | MAE observed vs predicted matrix                   |       0.0054 |       0.0114 | First
+Fitted length      | MAE predicted vs test matrix                       |       0.1069 |       0.1886 | First
 Fitted length      | Hellinger distance: care period lengths            |       0.1931 |       0.1809 | Second
 Fitted length      | Hellinger distance: category contacts (average)    |       0.3076 |       0.3287 | First
 Fitted length      | Levenshtein distance (mean)                        |      17.5003 |      17.7232 | First
@@ -63,10 +91,16 @@ Fitted length      | Needleman-Wunsch score (mean)                      |     -1
 Fitted length      | Needleman-Wunsch score, normalised (mean)          |      -0.9998 |      -1.0159 | First
 Fitted length      | Smith-Waterman score (mean)                        |       9.8984 |      10.0606 | Second
 Fitted length      | Smith-Waterman score, normalised (mean)            |       0.3597 |       0.3621 | Second
+Fitted length      | Scrambled baseline: Levenshtein, normalised        |       0.6145 |       0.6234 | -
+Fitted length      | Scrambled baseline: Needleman-Wunsch, normalised   |      -0.9311 |      -0.9483 | -
+Fitted length      | Scrambled baseline: Smith-Waterman, normalised     |       0.3221 |       0.3153 | -
 Fitted length      | Average simulated chain length                     |      18.9800 |      18.9870 | -
+Fitted length      | Share of chains shorter than shortest observed     |       0.0130 |       0.0130 | -
+Fitted length      | Share of chains longer than longest observed       |       0.0060 |       0.0060 | -
 Fitted length      | Steps from unseen histories (random fallback)      |            0 |            0 | -
 ----------------------------------------------------------------------------------------------------------------------
 Terminating state  | MAE observed vs predicted matrix                   |       0.0036 |       0.0074 | First
+Terminating state  | MAE predicted vs test matrix                       |       0.0618 |       0.1279 | First
 Terminating state  | Hellinger distance: care period lengths            |       0.4230 |       0.3371 | Second
 Terminating state  | Hellinger distance: category contacts (average)    |       0.2608 |       0.2142 | Second
 Terminating state  | Levenshtein distance (mean)                        |      20.4655 |      18.3629 | Second
@@ -75,12 +109,16 @@ Terminating state  | Needleman-Wunsch score (mean)                      |     -1
 Terminating state  | Needleman-Wunsch score, normalised (mean)          |      -1.7376 |      -1.1119 | Second
 Terminating state  | Smith-Waterman score (mean)                        |       9.5847 |      10.2829 | Second
 Terminating state  | Smith-Waterman score, normalised (mean)            |       0.4741 |       0.4485 | First
+Terminating state  | Scrambled baseline: Levenshtein, normalised        |       0.6571 |       0.6496 | -
+Terminating state  | Scrambled baseline: Needleman-Wunsch, normalised   |      -2.0780 |      -1.6195 | -
+Terminating state  | Scrambled baseline: Smith-Waterman, normalised     |       0.3764 |       0.3535 | -
 Terminating state  | Average simulated chain length                     |      21.0140 |      20.1030 | -
+Terminating state  | Share of chains shorter than shortest observed     |       0.1460 |       0.0020 | Second
+Terminating state  | Share of chains longer than longest observed       |       0.1260 |       0.0840 | Second
 Terminating state  | Steps from unseen histories (random fallback)      |            0 |            0 | -
 ----------------------------------------------------------------------------------------------------------------------
 Model              | Train vs test MAE (main categories)                |       0.1039 |       0.1879 | First
 Model              | Train vs test MAE (all categories)                 |       0.0609 |       0.1306 | First
-Model              | Train vs test chi-squared p-value (main)           |       0.0000 |       0.0000 | -
 Model              | Perturbation MAE at 5% noise (main)                |       0.0309 |       0.0532 | First
 Model              | Perturbation MAE at 5% noise (all)                 |       0.0267 |       0.0407 | First
 Model              | Bootstrap average std (main)                       |       0.0201 |       0.0492 | First

@@ -71,26 +71,25 @@ def run_single_order():
     )
     from simulations import (
         simulation_methods, simulation_counters, avg_length, distributions, best_dist, length_stats, fitted_stats,
-        goodness_of_fit, fitting_warnings, sampling_warning, time_fitted,
+        goodness_of_fit, fitting_warnings, sampling_warning, time_fitted, observed_length_extremes,
         main_sim, all_sim, fitted_sim, predicted_fixed_main, predicted_terminating_all, predicted_fitted_main
     )
     from metrics import (
         difference_fixed_main, difference_fitted_main, difference_terminating_all, mae_main, mae_all, mae_fitted,
         train_test_difference_main, train_test_difference_all, train_test_mae_main, train_test_mae_all,
-        levenshtein_results, nw_results, sw_results,
+        predicted_test_mae, levenshtein_results, nw_results, sw_results, scrambled_results, N_SCRAMBLED,
         sensitivity_results_main, sensitivity_results_all, comparison_results,
         final_mae_main, final_mae_all, conclusion,
         bootstrap_main, std_matrix_main, std_matrix_all, diff_from_mean_main, diff_from_mean_all,
         most_variable_main, most_variable_all,
-        chi2_main, chi2_all, chi2_train_test_main,
         missing_main, n_possible_main, unobserved_histories_main, missing_all, n_possible_all,
         unobserved_histories_all, impossible_transitions, rare_transitions, predicted_events, predicted_events_all,
         hellinger_results
     )
     import plotting  # Saves all figures to OUTPUT_DIR
     from cross_validation import (
-        cv_results, cv_summary, cv_perplexity, cv_by_group, cv_hellinger_lengths, CV_SCORES, SMOOTHING,
-        N_CV_SIMULATIONS
+        cv_results, cv_summary, cv_perplexity, cv_by_group, cv_hellinger_lengths, CV_SCORES, CV_BASELINES,
+        cv_vs_baseline, SMOOTHING, N_CV_SIMULATIONS
     )
 
     unit = "State" if ORDER == 1 else "State Pair"
@@ -201,6 +200,17 @@ def run_single_order():
             print(f"Terminating-state chains stopped at the maximum length before reaching 'Out': "
                   f"{simulation_counters['terminating']['capped_chains']} of {n_simulations}")
             print()
+            print("Simulated lengths outside the observed range (the length cap only affects the long end):")
+            obs = observed_length_extremes
+            print(f"  Observed training episodes: min = {obs['min']}, max = {obs['max']}, "
+                  f"5th-95th percentile = {obs['percentile_5']:.0f}-{obs['percentile_95']:.0f}, "
+                  f"length <= 5: {obs['at_most_5']:.1%}")
+            for method in simulation_methods.values():
+                ext = method["length_extremes"]
+                print(f"  {method['name']}: shorter than shortest observed: {ext['shorter_than_observed']:.1%}, "
+                      f"longer than longest observed: {ext['longer_than_observed']:.1%}, length <= 5: "
+                      f"{ext['at_most_5']:.1%}, 5th-95th percentile = {ext['percentile_5']:.0f}-{ext['percentile_95']:.0f}")
+            print()
 
             # Sequence Length Distribution Fitting
             print("=== Sequence Length Distribution Fitting ===")
@@ -305,6 +315,11 @@ def run_single_order():
             print(f"Mean Absolute Error (Train vs Test) for {MAIN_LABEL}: {train_test_mae_main:.4f}")
             print(f"Mean Absolute Error (Train vs Test) for {ALL_LABEL}: {train_test_mae_all:.4f}")
             print()
+            print("Mean Absolute Error (Predicted vs Test), for each simulation method:")
+            for method in simulation_methods.values():
+                print(f"  {method['name']}: {predicted_test_mae[method['kind']]:.4f}")
+            print("(Train vs Test does not depend on the simulation method, so it is the same for fixed and fitted length.)")
+            print()
 
             # Levenshtein Distance, Needleman-Wunsch (Global Alignment), Smith-Waterman (Local Alignment)
             for title, value_name, all_results in (("Levenshtein Distance Summary", "Distance", levenshtein_results),
@@ -340,6 +355,22 @@ def run_single_order():
                     print(f"Normal Fit (Normalised):  μ = {res['mu_norm']:.4f}, σ = {res['sigma_norm']:.4f}")
                     print()
 
+            # Scrambled baseline
+            print("=== Sequence Similarity vs Scrambled Baseline (in-sample) ===")
+            print(f"Scrambled = the first {N_SCRAMBLED} simulated chains of each method with their contacts shuffled")
+            print("(same length and mix of categories, no sequential structure). Normalised scores; Levenshtein: lower")
+            print("is better, Needleman-Wunsch and Smith-Waterman: higher is better.")
+            print(f"{'Method':<26} | {'Metric':<17} | {'Model':>8} | {'Scrambled':>9} | {'Model - Scrambled':>17}")
+            print("-" * 88)
+            for method_name, method in simulation_methods.items():
+                for key, label, results in (("levenshtein", "Levenshtein", levenshtein_results),
+                                            ("nw", "Needleman-Wunsch", nw_results),
+                                            ("sw", "Smith-Waterman", sw_results)):
+                    model = results[method_name]["mean_norm"]
+                    scrambled = scrambled_results[method_name][key]
+                    print(f"{method['name']:<26} | {label:<17} | {model:>8.4f} | {scrambled:>9.4f} | {model - scrambled:>+17.4f}")
+            print()
+
             # Matrix Perturbation
             print("=== Sensitivity Analysis ===")
             for label, results in ((MAIN_LABEL, sensitivity_results_main), (ALL_LABEL, sensitivity_results_all)):
@@ -371,22 +402,6 @@ def run_single_order():
                 print(f"  Average standard deviation across entries: {std_matrix.mean():.4f}")
                 print(f"  Most variable transition: {most_variable}")
                 print(f"  Max standard deviation: {std_matrix.max():.4f}")
-            print()
-
-            # Chi-Squared Test
-            print("=== Chi-Squared Tests ===")
-            for title, res in ((f"{MAIN_LABEL} Matrix (Observed vs Predicted)", chi2_main),
-                               (f"{ALL_LABEL} Matrix (Observed vs Predicted)", chi2_all),
-                               (f"Train vs Test {MAIN_LABEL} Matrix", chi2_train_test_main)):
-                print(f"{title}:")
-                print(f"  Chi-squared statistic: {res['chi2']:.4f}")
-                print(f"  Degrees of freedom: {res['df']}")
-                print(f"  P-value: {res['p_value']:.6f}")
-                print(f"  Number of cells tested: {res['n_cells']}")
-                print(f"  Result: Difference is {res['significance']}")
-                print()
-            print(f"Train vs Test {MAIN_LABEL} Interpretation: "
-                  f"{'Overfitting likely' if chi2_train_test_main['p_value'] < 0.05 else 'Model generalises well'}")
             print()
 
             # Missing Transitions
@@ -450,6 +465,22 @@ def run_single_order():
                 ci = f"[{res['ci_low']:.4f}, {res['ci_high']:.4f}]"
                 print(f"{description:<62} | {res['mean']:>8.4f} | {ci:>19} | {res['n']:>4}")
             print()
+            print("Baselines:")
+            for key, description in CV_BASELINES.items():
+                res = cv_summary[key]
+                ci = f"[{res['ci_low']:.4f}, {res['ci_high']:.4f}]"
+                print(f"{description:<62} | {res['mean']:>8.4f} | {ci:>19} | {res['n']:>4}")
+            print()
+            print("Model minus baseline on the same held-out episode (zero-order for log-likelihood and accuracy,")
+            print("scrambled chains for sequence similarity). Mean [95% CI]:")
+            for key, res in cv_vs_baseline.items():
+                description = CV_SCORES[key].replace(" (lower is better)", "")
+                lower_better = key.startswith("lev")
+                beats = (res["ci_high"] < 0) if lower_better else (res["ci_low"] > 0)
+                worse = (res["ci_low"] > 0) if lower_better else (res["ci_high"] < 0)
+                verdict = "model better" if beats else "baseline better" if worse else "no clear difference"
+                print(f"  {description:<55} {res['mean']:+.4f} [{res['ci_low']:+.4f}, {res['ci_high']:+.4f}]  {verdict}")
+            print()
             print(f"Perplexity (main categories): {cv_perplexity['main']:.3f}")
             print(f"Perplexity (all categories):  {cv_perplexity['all']:.3f}")
             print("(Perplexity = exp(-log-likelihood): the effective number of equally likely next contacts. Lower is better.)")
@@ -490,9 +521,6 @@ def run_single_order():
         "possible_histories_all": len(observed_all.columns) ** ORDER,
         "train_test_mae_main": train_test_mae_main,
         "train_test_mae_all": train_test_mae_all,
-        "train_test_chi2_p_main": chi2_train_test_main["p_value"],
-        "chi2_p_main": chi2_main["p_value"],
-        "chi2_p_all": chi2_all["p_value"],
         "sensitivity_mae_5pct_main": final_mae_main,
         "sensitivity_mae_5pct_all": final_mae_all,
         "bootstrap_avg_std_main": std_matrix_main.mean(),
@@ -506,6 +534,8 @@ def run_single_order():
         "capped_terminating_chains": simulation_counters["terminating"]["capped_chains"],
         "cv": cv_summary,
         "cv_descriptions": CV_SCORES,
+        "cv_baseline_descriptions": CV_BASELINES,
+        "cv_vs_baseline": cv_vs_baseline,
         "cv_perplexity": cv_perplexity,
         "cv_hellinger_lengths": cv_hellinger_lengths,
         "methods": {}
@@ -525,6 +555,12 @@ def run_single_order():
             "nw_norm_mean": nw_results[method_name]["mean_norm"],
             "sw_mean": sw_results[method_name]["mean_abs"],
             "sw_norm_mean": sw_results[method_name]["mean_norm"],
+            "levenshtein_norm_scrambled": scrambled_results[method_name]["levenshtein"],
+            "nw_norm_scrambled": scrambled_results[method_name]["nw"],
+            "sw_norm_scrambled": scrambled_results[method_name]["sw"],
+            "predicted_test_mae": predicted_test_mae[method["kind"]],
+            "shorter_than_observed": method["length_extremes"]["shorter_than_observed"],
+            "longer_than_observed": method["length_extremes"]["longer_than_observed"],
         }
 
     summary = json.loads(json.dumps(summary, default=to_python))

@@ -53,7 +53,7 @@ There are 12 files in `src/`. Run everything through Docker to save installing t
       - Needleman-Wunsch Algorithm (global sequence alignment),
       - Smith-Waterman Algorithm (local sequence alignment).
    - Sensitivity analysis (matrix perturbation) and bootstrap analysis,
-   - Chi-squared tests,
+   - A scrambled baseline for the sequence comparisons,
    - Transitions that never occurred in the training data.
 
 7. Plotting of Graphs: `plotting.py`
@@ -368,6 +368,10 @@ The code runs three sets of simulations:
 
 The full chains are kept for the sequence comparisons. They are also converted into transitions to calculate the predicted transition matrices. The time taken is recorded.
 
+# Simulated Lengths Outside the Observed Range
+
+A mismatch between simulated and real lengths can be two-sided: too many very short chains as well as a long tail. The length cap (`MAX_TERMINATING_LENGTH`) only shortens the long tail, and does nothing about chains that are too short. So the results file reports, for each method, the share of simulated chains shorter than the shortest observed episode, the share longer than the longest observed episode, the share with 5 or fewer contacts, and the 5th-95th percentile of lengths, next to the same figures for the observed episodes.
+
 # Sequence Length Distribution Fitting
 
 The fixed-length method uses the average care-period length, and the terminating-state method lets "Out" decide the length. In practice care periods vary in length, and terminating-state chains can become very long. So the fitted-length method samples lengths from a statistical distribution fitted to the real lengths.
@@ -409,7 +413,9 @@ This file compares the observed data with the predictions from all three simulat
 
    ## Mean Absolute Error
 
-   Subtracts the predicted probabilities from the observed ones (after lining the matrices up) and calculates the MAE. The same method compares the training (observed) matrices with the test matrices.
+   Subtracts the predicted probabilities from the observed ones (after lining the matrices up) and calculates the MAE. The same method compares:
+   - the training (observed) matrix with the test matrix ("train vs test"). This does not depend on the simulation method, so it is the same for fixed and fitted length (both use the main-category matrix),
+   - each method's predicted (simulated) matrix with the test matrix ("predicted vs test"), for all three methods. Only histories that occur in the test data are evaluated.
 
    For second-order, the matrices have many more rows and each row is estimated from fewer transitions. So when comparing the two orders, the direction of the difference in MAE is meaningful, but its size is not directly comparable.
 
@@ -465,6 +471,11 @@ This file compares the observed data with the predictions from all three simulat
 
    For all three, `compare_all_pairs` runs the comparisons and `summarise_scores` calculates the mean, median, mode, standard deviation, minimum, maximum, skew, and a normal-distribution fit, for both the absolute and the normalised scores.
 
+   ## Scrambled Baseline
+
+   A similarity score on its own does not say whether it is good. With only 5-7 categories, two unrelated sequences of similar length are already fairly similar. So the same scores are calculated for **scrambled** chains: the first 200 simulated chains of each method, with the order of their contacts shuffled. A scrambled chain keeps the same length and the same mix of categories as the original, but has no sequential structure.
+   If the model's chains score better than their scrambled versions, the similarity comes from the order of contacts. If not, it was coming only from length and composition. The scrambling uses its own random generator, so the rest of the analysis is unaffected.
+
    ## Sensitivity Analysis
 
    The sensitivity analysis estimates how much the results would change if the transition probabilities were slightly different.
@@ -498,23 +509,9 @@ This file compares the observed data with the predictions from all three simulat
    Each sample picks a random 80% of the training care periods and calculates the transition matrices. Every matrix is placed on the full grid of possible histories (5 / 7 rows for first-order, 25 / 49 rows for second-order) so they all line up. The code then measures how much each entry varies across samples, and reports the transition that varies the most.
    If entries vary widely, the estimates depend strongly on which care periods happened to be observed.
 
-   ## Chi-Squared Test
+   ## Chi-Squared Test (removed)
 
-   The chi-squared test checks whether the differences between two matrices are statistically significant or just random variation.
-
-   chi_squared_test_matrices:
-      H0 (null hypothesis): The matrices are the same
-      H1 (alternative): The matrices are different
-      If p-value < 0.05, we reject H0 (the matrices are significantly different).
-
-      Returns:
-      - chi2_statistic: a larger value suggests a greater difference,
-      - p_value: used to decide statistical significance,
-      - df: degrees of freedom,
-      - the number of matrix cells tested.
-
-   The function lines up both matrices, flattens them into lists, and converts the probabilities into approximate counts. It removes cells where the predicted count is zero, rescales the predicted counts to the same total as the observed counts, and runs the test.
-   It is used for observed vs predicted (main and all categories) and for train vs test (main categories).
+   Earlier versions compared matrices with a chi-squared test. It was removed for two reasons. First, it turned probabilities into counts by multiplying by an arbitrary 10,000, so its p-value depended on that arbitrary number rather than on the data. Second, two of its three uses compared the training matrix with simulations generated from that same matrix. The questions it addressed are now answered by the leave-one-out cross-validation (model vs unseen data) and by the permutation tests in `dataset_comparison.py` (differences between groups of episodes).
 
    ## Missing Transitions
 
@@ -653,6 +650,13 @@ It works on whole episodes (not the train/test split) and uses first-order trans
    Smoothing affects second-order more than first-order, because its rows contain fewer transitions. The log-likelihood is therefore also reported with lighter smoothing (0.1 and 0.5 extra counts), to check that the conclusion does not depend on this choice.
 
    The sequence-similarity scores use the unsmoothed model, exactly as in the main simulations.
+
+   ## Baselines
+
+   - **Zero-order model:** predicts every next contact from the overall frequency of each category in the training episodes (add-one smoothed), ignoring the order of contacts completely. It is scored on the same transitions as the first- and second-order models. The difference between first-order and zero-order shows how much the model gains from knowing the current contact; the difference between second- and first-order shows what the previous contact adds on top.
+   - **Scrambled chains:** for every held-out episode, the simulated chains are also scrambled (contacts shuffled, same length and mix of categories) and scored in the same way. The difference between model and scrambled shows whether the sequence similarity comes from the order of contacts.
+
+   Both are reported as "model minus baseline" on the same held-out episode, with a mean and 95% confidence interval.
 
    ## Which transitions are scored
 

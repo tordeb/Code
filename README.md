@@ -23,7 +23,8 @@ Each model is simulated using three methods:
 Model performance is evaluated using:
 
 - Validation on unseen episodes: leave-one-out cross-validation, scoring each held-out episode by log-likelihood per transition (perplexity), next-contact accuracy and sequence similarity, with 95% confidence intervals and a paired first- vs second-order comparison,
-- Transition matrix accuracy: Mean Absolute Error (MAE) against the observed and held-out test matrices, plus chi-squared tests,
+- Baselines: a zero-order model (category frequencies only) for next-contact prediction, and scrambled sequences (same length and category mix, order shuffled) for sequence similarity,
+- Transition matrix accuracy: Mean Absolute Error (MAE) of the predicted matrices against the observed and held-out test matrices,
 - Distributional similarity: Hellinger distance for episode lengths and category contact distributions,
 - Sequence similarity: Levenshtein distance, Needleman-Wunsch global alignment, and Smith-Waterman local alignment,
 - Robustness and sensitivity: bootstrap resampling, and matrix perturbation across five noise levels,
@@ -108,8 +109,20 @@ On unseen episodes (leave-one-out cross-validation), the second-order model pred
 | Next-contact accuracy, main categories | 59.2% | 63.7% | +4.4 points [+1.4, +7.5] |
 | Next-contact accuracy, all categories | 52.0% | 55.6% | +3.7 points [+1.3, +6.0] |
 
-- This advantage holds with add-one and add-0.5 smoothing, but not with very light smoothing (0.1), where the difference is no longer clear.
+- Both models clearly beat a zero-order baseline that predicts contacts from category frequencies alone (combined data, main categories: accuracy 44.6% for zero-order, +14.6 points for first-order, +19.1 points for second-order). Knowing the current contact matters most; the previous contact adds a smaller further gain.
+- This advantage of second-order holds with add-one and add-0.5 smoothing, but not with very light smoothing (0.1), where the difference is no longer clear.
 - For simulated sequences, the picture is mixed. First-order sequences are slightly closer to held-out episodes for the fixed- and fitted-length methods. Second-order terminating-state sequences are closer by Levenshtein and Needleman-Wunsch, but not by Smith-Waterman.
+
+### Do the simulated sequences capture the order of contacts?
+
+Each simulated chain was compared with a scrambled version of itself (same length and category mix, contacts shuffled):
+
+- **Terminating-state chains** score clearly better than their scrambled versions on all three sequence metrics, for both orders and both datasets. Their similarity to real episodes comes from the order of contacts.
+- **Fixed- and fitted-length chains** do not beat their scrambled versions on Levenshtein or Needleman-Wunsch (on the combined data they are slightly worse), and only beat them on Smith-Waterman. Their overall similarity to real episodes comes from length and category mix rather than order; only short local stretches reflect real sequences.
+
+### Episode lengths
+
+The length mismatch of the terminating-state model is two-sided. On the combined data, 9.1% of first-order terminating chains are shorter than the shortest observed episode and 17.3% have 5 or fewer contacts (3.8% of observed episodes), while 4.9% are longer than the longest observed. The 100-contact cap only affects the long end. The second-order model produces far fewer very short chains (1.0% shorter than the shortest observed).
 - Second-order estimates remain less certain. In the combined data, 42 of the 49 possible state pairs are observed, and its tracked transition probabilities do not reach a stable estimate, while the first-order ones do. Its train-vs-test MAE and bootstrap variability are also higher.
 - Combining the data reduces second-order sparsity: missing transitions in the 25x5 matrix fall from 38/125 (mock only) to 14/125.
 

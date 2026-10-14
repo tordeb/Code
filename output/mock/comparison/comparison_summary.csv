@@ -1,5 +1,6 @@
 method,metric,first_order,second_order,better
 Fixed length,MAE observed vs predicted matrix,0.005838824373973558,0.010734138695556315,First
+Fixed length,MAE predicted vs test matrix,0.1012483408504575,0.1854327956123749,First
 Fixed length,Hellinger distance: care period lengths,0.7719708428296471,0.7719708428296471,-
 Fixed length,Hellinger distance: category contacts (average),0.3270555898443498,0.3236632341884194,Second
 Fixed length,Levenshtein distance (mean),16.112755102040815,16.375326530612245,First
@@ -8,9 +9,15 @@ Fixed length,Needleman-Wunsch score (mean),-8.785795918367347,-9.299959183673469
 Fixed length,"Needleman-Wunsch score, normalised (mean)",-0.6815806247577462,-0.7141293549630625,First
 Fixed length,Smith-Waterman score (mean),10.38038775510204,10.469877551020408,Second
 Fixed length,"Smith-Waterman score, normalised (mean)",0.3328140020582255,0.33439695774330375,Second
+Fixed length,"Scrambled baseline: Levenshtein, normalised",0.5975049348197552,0.6019159935329031,-
+Fixed length,"Scrambled baseline: Needleman-Wunsch, normalised",-0.6744118869027885,-0.6822237418597318,-
+Fixed length,"Scrambled baseline: Smith-Waterman, normalised",0.29848333000081395,0.2930441678022928,-
 Fixed length,Average simulated chain length,19.0,19.0,-
+Fixed length,Share of chains shorter than shortest observed,0.0,0.0,-
+Fixed length,Share of chains longer than longest observed,0.0,0.0,-
 Fixed length,Steps from unseen histories (random fallback),0,0,-
 Fitted length,MAE observed vs predicted matrix,0.005384580952012533,0.011428100983438877,First
+Fitted length,MAE predicted vs test matrix,0.10693965951977213,0.18862695277148542,First
 Fitted length,Hellinger distance: care period lengths,0.19306192478555975,0.18093516571113577,Second
 Fitted length,Hellinger distance: category contacts (average),0.3076489112555948,0.3286989397336827,First
 Fitted length,Levenshtein distance (mean),17.50030612244898,17.723163265306123,First
@@ -19,9 +26,15 @@ Fitted length,Needleman-Wunsch score (mean),-10.409836734693878,-10.836265306122
 Fitted length,"Needleman-Wunsch score, normalised (mean)",-0.9998157817316113,-1.0159468683355095,First
 Fitted length,Smith-Waterman score (mean),9.898448979591837,10.060551020408163,Second
 Fitted length,"Smith-Waterman score, normalised (mean)",0.3596618998088629,0.36205561440709483,Second
+Fitted length,"Scrambled baseline: Levenshtein, normalised",0.6145168133336715,0.6234235424204925,-
+Fitted length,"Scrambled baseline: Needleman-Wunsch, normalised",-0.9311026037058799,-0.9483108343539778,-
+Fitted length,"Scrambled baseline: Smith-Waterman, normalised",0.32214175871162587,0.3153497387804886,-
 Fitted length,Average simulated chain length,18.98,18.987,-
+Fitted length,Share of chains shorter than shortest observed,0.013,0.013,-
+Fitted length,Share of chains longer than longest observed,0.006,0.006,-
 Fitted length,Steps from unseen histories (random fallback),0,0,-
 Terminating state,MAE observed vs predicted matrix,0.003553028031082856,0.007438570592921844,First
+Terminating state,MAE predicted vs test matrix,0.06183653675344684,0.127895760267045,First
 Terminating state,Hellinger distance: care period lengths,0.42303688843926784,0.33705457346840684,Second
 Terminating state,Hellinger distance: category contacts (average),0.2607599544746995,0.2141837316481447,Second
 Terminating state,Levenshtein distance (mean),20.465469387755103,18.36285714285714,Second
@@ -30,11 +43,15 @@ Terminating state,Needleman-Wunsch score (mean),-12.131408163265306,-9.545387755
 Terminating state,"Needleman-Wunsch score, normalised (mean)",-1.7375524088718064,-1.1118855729874315,Second
 Terminating state,Smith-Waterman score (mean),9.58469387755102,10.282877551020409,Second
 Terminating state,"Smith-Waterman score, normalised (mean)",0.4740950918556497,0.4484502486826511,First
+Terminating state,"Scrambled baseline: Levenshtein, normalised",0.657066155299899,0.6495646966784663,-
+Terminating state,"Scrambled baseline: Needleman-Wunsch, normalised",-2.077978702681257,-1.6195208571147663,-
+Terminating state,"Scrambled baseline: Smith-Waterman, normalised",0.3764337716607816,0.3534518702879564,-
 Terminating state,Average simulated chain length,21.014,20.103,-
+Terminating state,Share of chains shorter than shortest observed,0.146,0.002,Second
+Terminating state,Share of chains longer than longest observed,0.126,0.084,Second
 Terminating state,Steps from unseen histories (random fallback),0,0,-
 Model,Train vs test MAE (main categories),0.10392333718016844,0.18788630597528722,First
 Model,Train vs test MAE (all categories),0.06090735013659897,0.13060552403380674,First
-Model,Train vs test chi-squared p-value (main),0.0,0.0,-
 Model,Perturbation MAE at 5% noise (main),0.030851109410035642,0.05315939997661448,First
 Model,Perturbation MAE at 5% noise (all),0.02669754427668789,0.040699091042489935,First
 Model,Bootstrap average std (main),0.020144052910217532,0.04920299300700388,First

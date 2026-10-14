@@ -26,6 +26,13 @@
 #
 # Only transitions with at least two earlier states are scored (in both orders), because a second-order model cannot
 # score the first transition of an episode. Both orders are therefore scored on exactly the same transitions.
+#
+# Baselines, so the scores can be judged:
+#   - Zero-order model: predicts each next contact from the overall frequency of each category in the training
+#     episodes, ignoring order completely. Shows how much the first-order model gains from knowing the current contact.
+#   - Scrambled chains: the simulated chains with the order of their contacts shuffled (same length and mix of
+#     categories). Shows whether the sequence similarity comes from the order of contacts, or just from length and
+#     composition.
 
 
 # --------------------------------------------------------------------------------------------------------------------------------------
@@ -36,20 +43,23 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 
-from config import ORDER, OUTPUT_DIR, main_categories, all_categories
+from config import ORDER, OUTPUT_DIR, SEED, main_categories, all_categories
 from data_loader import df
 from transition_matrices import (
     HISTORY_COLS, NEXT_COL, build_transitions, calculate_transition_matrix, history_key, full_history_index,
     get_starting_states, states_to_probabilities
 )
 from simulations import build_lookup, simulate, fit_length_distribution, sample_fitted_lengths
-from metrics import chain_to_string, levenshtein_scores, needleman_wunsch_scores, smith_waterman_scores
+from metrics import chain_to_string, levenshtein_scores, needleman_wunsch_scores, smith_waterman_scores, scramble
 from distances import hellinger_distance_histograms
 
 
 SMOOTHING = 1                      # Add-one (Laplace) smoothing, used for the main scores
 SMOOTHING_SENSITIVITY = [0.1, 0.5]  # Lighter smoothing, log-likelihood only
 N_CV_SIMULATIONS = 100  # Chains simulated per held-out episode for the sequence-similarity scores
+
+# Separate random generator for scrambling, so the simulations are unaffected
+scramble_rng = np.random.default_rng(SEED)
 
 
 # --------------------------------------------------------------------------------------------------------------------------------------
@@ -82,6 +92,18 @@ def smoothed_matrix(train_data, categories, smoothing=SMOOTHING):
     counts = counts.reindex(index=full_history_index(categories), columns=categories, fill_value=0)
     smoothed = counts + smoothing
     return smoothed.div(smoothed.sum(axis=1), axis=0)
+
+
+def zero_order_matrix(train_data, categories, smoothing=SMOOTHING):
+    """
+    Zero-order baseline: the overall frequency of each category among the training contacts (add-one smoothed), used
+    as the prediction for every history. Ignores the order of contacts completely, and is the same for both orders.
+    """
+    contacts = train_data["SurfaceCategories"]
+    counts = contacts[contacts.isin(categories)].value_counts().reindex(categories, fill_value=0) + smoothing
+    frequencies = (counts / counts.sum()).values
+    index = full_history_index(categories)
+    return pd.DataFrame(np.tile(frequencies, (len(index), 1)), index=index, columns=categories)
 
 
 def score_episode(probabilities, episode, categories):
@@ -142,15 +164,15 @@ def simulate_fold(train_data, train_ids):
     return chains
 
 
-def sequence_scores(chains, episode):
+def sequence_scores(chains, episode, suffix=""):
     """Mean normalised Levenshtein, Needleman-Wunsch and Smith-Waterman scores against the held-out episode."""
     held_out = chain_to_string(episode["SurfaceCategories"].tolist())
     scores = {}
     for method, method_chains in chains.items():
         strings = [chain_to_string(chain) for chain in method_chains]
-        scores[f"lev_norm_{method}"] = np.mean([levenshtein_scores(held_out, s)[1] for s in strings])
-        scores[f"nw_norm_{method}"] = np.mean([needleman_wunsch_scores(held_out, s)[1] for s in strings])
-        scores[f"sw_norm_{method}"] = np.mean([smith_waterman_scores(held_out, s)[1] for s in strings])
+        scores[f"lev_norm_{method}{suffix}"] = np.mean([levenshtein_scores(held_out, s)[1] for s in strings])
+        scores[f"nw_norm_{method}{suffix}"] = np.mean([needleman_wunsch_scores(held_out, s)[1] for s in strings])
+        scores[f"sw_norm_{method}{suffix}"] = np.mean([smith_waterman_scores(held_out, s)[1] for s in strings])
     return scores
 
 
@@ -182,8 +204,17 @@ for held_out_id in episode_ids:
             row[f"loglik_{label}_smoothing_{smoothing}"] = score_episode(
                 smoothed_matrix(train_data, categories, smoothing), episode, categories)[0]
 
+        # Zero-order baseline, scored on the same transitions
+        zero_loglik, zero_accuracy, _ = score_episode(zero_order_matrix(train_data, categories), episode, categories)
+        row[f"loglik_{label}_zero"] = zero_loglik
+        row[f"accuracy_{label}_zero"] = zero_accuracy
+
     chains = simulate_fold(train_data, train_ids)
     row.update(sequence_scores(chains, episode))
+
+    # Scrambled baseline: the same simulated chains with their contacts shuffled
+    scrambled = {method: scramble(method_chains, scramble_rng) for method, method_chains in chains.items()}
+    row.update(sequence_scores(scrambled, episode, suffix="_scrambled"))
     for method, method_chains in chains.items():
         cv_simulated_lengths[method].extend(len(chain) for chain in method_chains)
 
@@ -222,7 +253,33 @@ for label in ("main", "all"):
         CV_SCORES[f"loglik_{label}_smoothing_{smoothing}"] = (f"Log-likelihood per transition ({label} categories), "
                                                              f"smoothing {smoothing}")
 
-cv_summary = {key: mean_ci(cv_results[key]) for key in CV_SCORES if key in cv_results}
+# Baselines (reported separately from the first- vs second-order comparison)
+CV_BASELINES = {}
+for label in ("main", "all"):
+    CV_BASELINES[f"loglik_{label}_zero"] = f"Zero-order baseline: log-likelihood per transition ({label} categories)"
+    CV_BASELINES[f"accuracy_{label}_zero"] = f"Zero-order baseline: next-contact accuracy ({label} categories)"
+for method in ("fixed", "fitted", "terminating"):
+    for metric, name in (("lev", "Levenshtein"), ("nw", "Needleman-Wunsch"), ("sw", "Smith-Waterman")):
+        CV_BASELINES[f"{metric}_norm_{method}_scrambled"] = f"Scrambled chains: normalised {name}, {method}"
+
+cv_summary = {key: mean_ci(cv_results[key]) for key in list(CV_SCORES) + list(CV_BASELINES) if key in cv_results}
+
+
+def paired_difference(key_a, key_b):
+    """Mean and 95% CI of (score a - score b) over held-out episodes, e.g. model minus baseline."""
+    return mean_ci(cv_results[key_a] - cv_results[key_b])
+
+
+# Model vs baselines, for this order
+cv_vs_baseline = {}
+for label in ("main", "all"):
+    for score in ("loglik", "accuracy"):
+        cv_vs_baseline[f"{score}_{label}"] = paired_difference(f"{score}_{label}", f"{score}_{label}_zero")
+for method in ("fixed", "fitted", "terminating"):
+    for metric in ("lev", "nw", "sw"):
+        key = f"{metric}_norm_{method}"
+        if key in cv_results:
+            cv_vs_baseline[key] = paired_difference(key, f"{key}_scrambled")
 
 # Perplexity from the mean log-likelihood
 cv_perplexity = {label: np.exp(-cv_summary[f"loglik_{label}"]["mean"]) for label in ("main", "all")}

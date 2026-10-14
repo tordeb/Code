@@ -32,6 +32,7 @@ METHOD_TITLES = {"fixed": "Fixed length", "fitted": "Fitted length", "terminatin
 # (key, description, which is better: "lower" / "higher" / None)
 METHOD_METRICS = [
     ("mae", "MAE observed vs predicted matrix", "lower"),
+    ("predicted_test_mae", "MAE predicted vs test matrix", "lower"),
     ("hellinger_lengths", "Hellinger distance: care period lengths", "lower"),
     ("hellinger_visits", "Hellinger distance: category contacts (average)", "lower"),
     ("levenshtein_mean", "Levenshtein distance (mean)", "lower"),
@@ -40,14 +41,18 @@ METHOD_METRICS = [
     ("nw_norm_mean", "Needleman-Wunsch score, normalised (mean)", "higher"),
     ("sw_mean", "Smith-Waterman score (mean)", "higher"),
     ("sw_norm_mean", "Smith-Waterman score, normalised (mean)", "higher"),
+    ("levenshtein_norm_scrambled", "Scrambled baseline: Levenshtein, normalised", None),
+    ("nw_norm_scrambled", "Scrambled baseline: Needleman-Wunsch, normalised", None),
+    ("sw_norm_scrambled", "Scrambled baseline: Smith-Waterman, normalised", None),
     ("avg_chain_length", "Average simulated chain length", None),
+    ("shorter_than_observed", "Share of chains shorter than shortest observed", "lower"),
+    ("longer_than_observed", "Share of chains longer than longest observed", "lower"),
     ("fallback_steps", "Steps from unseen histories (random fallback)", "lower"),
 ]
 
 MODEL_METRICS = [
     ("train_test_mae_main", "Train vs test MAE (main categories)", "lower"),
     ("train_test_mae_all", "Train vs test MAE (all categories)", "lower"),
-    ("train_test_chi2_p_main", "Train vs test chi-squared p-value (main)", "higher"),
     ("sensitivity_mae_5pct_main", "Perturbation MAE at 5% noise (main)", "lower"),
     ("sensitivity_mae_5pct_all", "Perturbation MAE at 5% noise (all)", "lower"),
     ("bootstrap_avg_std_main", "Bootstrap average std (main)", "lower"),
@@ -144,6 +149,24 @@ def main(dataset="combined"):
                         f"{p_text:>10} | {d['better']}")
         cv_rows.append([first["cv_descriptions"][key], a["mean"], a["ci_low"], a["ci_high"], b["mean"], b["ci_low"],
                         b["ci_high"], d["mean_diff"], d["ci_low"], d["ci_high"], d["wilcoxon_p"], d["n"], d["better"]])
+    cv_lines.append("")
+    cv_lines.append("Baselines (model minus baseline on the same held-out episode, mean [95% CI]):")
+    cv_lines.append("  zero-order = category frequencies only, ignoring order; scrambled = simulated chains with")
+    cv_lines.append("  their contacts shuffled (same length and mix of categories).")
+    cv_lines.append(f"{'Score':<62} | {'Baseline':>10} | {'First-order - baseline':>28} | "
+                    f"{'Second-order - baseline':>28}")
+    cv_lines.append("-" * 140)
+    for key, d_first in first["cv_vs_baseline"].items():
+        d_second = second["cv_vs_baseline"][key]
+        baseline_key = f"{key}_zero" if key.startswith(("loglik", "accuracy")) else f"{key}_scrambled"
+        baseline = (first["cv"][baseline_key]["mean"] + second["cv"][baseline_key]["mean"]) / 2 \
+            if baseline_key.endswith("_scrambled") else first["cv"][baseline_key]["mean"]
+        first_text = f"{d_first['mean']:+.4f} [{d_first['ci_low']:+.4f}, {d_first['ci_high']:+.4f}]"
+        second_text = f"{d_second['mean']:+.4f} [{d_second['ci_low']:+.4f}, {d_second['ci_high']:+.4f}]"
+        cv_lines.append(f"{first['cv_descriptions'][key]:<62} | {baseline:>10.4f} | {first_text:>28} | "
+                        f"{second_text:>28}")
+    cv_lines.append("  (For Levenshtein a negative difference means the model is better; for the others, positive.)")
+    cv_lines.append("  The scrambled baseline value shown is the average of the two orders' scrambled chains.")
     cv_lines.append("")
     cv_lines.append(f"Perplexity (main / all categories): first-order {first['cv_perplexity']['main']:.3f} / "
                     f"{first['cv_perplexity']['all']:.3f}, second-order {second['cv_perplexity']['main']:.3f} / "

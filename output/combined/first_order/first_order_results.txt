@@ -128,14 +128,20 @@ Running 1000 simulations for each method...
 Average Care Period Length: 26
 
 5x5 fixed length simulations: 0.14 seconds
-5x5 fitted length simulations: 0.14 seconds
-7x7 terminating state simulations: 0.13 seconds
+5x5 fitted length simulations: 0.13 seconds
+7x7 terminating state simulations: 0.14 seconds
 
 Steps where the history was never seen in training (next state picked at random):
   5x5 fixed length: 0
   5x5 fitted length: 0
   7x7 terminating state: 0
 Terminating-state chains stopped at the maximum length before reaching 'Out': 20 of 1000
+
+Simulated lengths outside the observed range (the length cap only affects the long end):
+  Observed training episodes: min = 4, max = 78, 5th-95th percentile = 6-62, length <= 5: 3.8%
+  5x5 fixed length: shorter than shortest observed: 0.0%, longer than longest observed: 0.0%, length <= 5: 0.0%, 5th-95th percentile = 26-26
+  5x5 fitted length: shorter than shortest observed: 1.5%, longer than longest observed: 0.6%, length <= 5: 4.3%, 5th-95th percentile = 6-57
+  7x7 terminating state: shorter than shortest observed: 9.1%, longer than longest observed: 4.9%, length <= 5: 17.3%, 5th-95th percentile = 3-77
 
 === Sequence Length Distribution Fitting ===
 Observed lengths: min=4, max=78
@@ -157,7 +163,7 @@ Using: NegBinom(n=2.82, p=0.096)
 Sampled lengths: min=1, max=93, mean=26.47
 
 
-Fitted-length simulations completed in 0.14 seconds
+Fitted-length simulations completed in 0.13 seconds
 
 === Predicted 5x5 Matrix (from fixed-length simulations) ===
 Next_Category      Equipment  Patient  NearPatient  FarPatient  HygieneArea
@@ -285,6 +291,12 @@ Out                0.071      0.246    0.000        0.000      -0.448        0.1
 Mean Absolute Error (Train vs Test) for 5x5: 0.0557
 Mean Absolute Error (Train vs Test) for 7x7: 0.0609
 
+Mean Absolute Error (Predicted vs Test), for each simulation method:
+  5x5 fixed length: 0.0564
+  5x5 fitted length: 0.0549
+  7x7 terminating state: 0.0636
+(Train vs Test does not depend on the simulation method, so it is the same for fixed and fitted length.)
+
 === Levenshtein Distance Summary (simulated chains vs training episodes, in-sample) ===
 === Method: (5x5_fixed) ===
 Observed chains:  130
@@ -314,7 +326,7 @@ Normal Fit (Normalised):  μ = 0.5903, σ = 0.1656
 Observed chains:  130
 Simulated chains: 1000
 Total comparisons: 130 x 1000 = 130,000
-Calculation time: 0.09 seconds
+Calculation time: 0.07 seconds
 Absolute Distance (Lower is better/more similar):
   Mean:   25.75
   Median: 23.00
@@ -363,7 +375,7 @@ Normal Fit (Normalised):  μ = 0.6109, σ = 0.1715
 Observed chains:  130
 Simulated chains: 1000
 Total comparisons: 130 x 1000 = 130,000
-Calculation time: 133.53 seconds
+Calculation time: 128.08 seconds
 Absolute Score (Higher is better/more similar):
   Mean:   -11.85
   Median: -11.00
@@ -387,7 +399,7 @@ Normal Fit (Normalised):  μ = -0.9368, σ = 1.2154
 Observed chains:  130
 Simulated chains: 1000
 Total comparisons: 130 x 1000 = 130,000
-Calculation time: 143.87 seconds
+Calculation time: 129.14 seconds
 Absolute Score (Higher is better/more similar):
   Mean:   -15.54
   Median: -13.00
@@ -411,7 +423,7 @@ Normal Fit (Normalised):  μ = -1.5724, σ = 2.3422
 Observed chains:  130
 Simulated chains: 1000
 Total comparisons: 130 x 1000 = 130,000
-Calculation time: 128.46 seconds
+Calculation time: 124.55 seconds
 Absolute Score (Higher is better/more similar):
   Mean:   -17.02
   Median: -13.00
@@ -436,7 +448,7 @@ Normal Fit (Normalised):  μ = -2.3046, σ = 3.5410
 Observed chains:  130
 Simulated chains: 1000
 Total comparisons: 130 x 1000 = 130,000
-Calculation time: 45.10 seconds
+Calculation time: 42.41 seconds
 Absolute Score (Higher is better/more similar):
   Mean:   15.83
   Median: 15.00
@@ -460,7 +472,7 @@ Normal Fit (Normalised):  μ = 0.3848, σ = 0.1640
 Observed chains:  130
 Simulated chains: 1000
 Total comparisons: 130 x 1000 = 130,000
-Calculation time: 52.32 seconds
+Calculation time: 43.25 seconds
 Absolute Score (Higher is better/more similar):
   Mean:   14.72
   Median: 13.00
@@ -484,7 +496,7 @@ Normal Fit (Normalised):  μ = 0.4167, σ = 0.1987
 Observed chains:  130
 Simulated chains: 1000
 Total comparisons: 130 x 1000 = 130,000
-Calculation time: 42.61 seconds
+Calculation time: 41.73 seconds
 Absolute Score (Higher is better/more similar):
   Mean:   13.32
   Median: 10.00
@@ -503,6 +515,22 @@ Normalised Score:
   Skew:   0.352
 Normal Fit (Absolute):    μ = 13.32, σ = 11.90
 Normal Fit (Normalised):  μ = 0.4446, σ = 0.1833
+
+=== Sequence Similarity vs Scrambled Baseline (in-sample) ===
+Scrambled = the first 200 simulated chains of each method with their contacts shuffled
+(same length and mix of categories, no sequential structure). Normalised scores; Levenshtein: lower
+is better, Needleman-Wunsch and Smith-Waterman: higher is better.
+Method                     | Metric            |    Model | Scrambled | Model - Scrambled
+----------------------------------------------------------------------------------------
+5x5 fixed length           | Levenshtein       |   0.5903 |    0.5817 |           +0.0086
+5x5 fixed length           | Needleman-Wunsch  |  -0.9368 |   -0.9083 |           -0.0285
+5x5 fixed length           | Smith-Waterman    |   0.3848 |    0.3597 |           +0.0251
+5x5 fitted length          | Levenshtein       |   0.6275 |    0.6193 |           +0.0082
+5x5 fitted length          | Needleman-Wunsch  |  -1.5724 |   -1.5235 |           -0.0489
+5x5 fitted length          | Smith-Waterman    |   0.4167 |    0.3855 |           +0.0312
+7x7 terminating state      | Levenshtein       |   0.6109 |    0.6539 |           -0.0429
+7x7 terminating state      | Needleman-Wunsch  |  -2.3046 |   -2.4694 |           +0.1648
+7x7 terminating state      | Smith-Waterman    |   0.4446 |    0.3900 |           +0.0545
 
 === Sensitivity Analysis ===
 === 5x5 Matrix Sensitivity ===
@@ -547,30 +575,6 @@ Number of samples: 100
   Average standard deviation across entries: 0.0104
   Most variable transition: Out → Equipment
   Max standard deviation: 0.0478
-
-=== Chi-Squared Tests ===
-5x5 Matrix (Observed vs Predicted):
-  Chi-squared statistic: 64.1393
-  Degrees of freedom: 24
-  P-value: 0.000016
-  Number of cells tested: 25
-  Result: Difference is highly significant (p < 0.001)
-
-7x7 Matrix (Observed vs Predicted):
-  Chi-squared statistic: 177.3714
-  Degrees of freedom: 37
-  P-value: 0.000000
-  Number of cells tested: 38
-  Result: Difference is highly significant (p < 0.001)
-
-Train vs Test 5x5 Matrix:
-  Chi-squared statistic: 33387.0555
-  Degrees of freedom: 23
-  P-value: 0.000000
-  Number of cells tested: 24
-  Result: Difference is highly significant (p < 0.001)
-
-Train vs Test 5x5 Interpretation: Overfitting likely
 
 === Missing Events Analysis ===
 
@@ -651,6 +655,37 @@ Log-likelihood per transition (main categories), smoothing 0.1 |  -1.1238 |  [-1
 Log-likelihood per transition (main categories), smoothing 0.5 |  -1.1233 |  [-1.1963, -1.0503] |  154
 Log-likelihood per transition (all categories), smoothing 0.1  |  -1.3580 |  [-1.4299, -1.2860] |  163
 Log-likelihood per transition (all categories), smoothing 0.5  |  -1.3576 |  [-1.4291, -1.2861] |  163
+
+Baselines:
+Zero-order baseline: log-likelihood per transition (main categories) |  -1.4295 |  [-1.5044, -1.3547] |  154
+Zero-order baseline: next-contact accuracy (main categories)   |   0.4458 |    [0.3955, 0.4961] |  154
+Zero-order baseline: log-likelihood per transition (all categories) |  -1.6968 |  [-1.7756, -1.6180] |  163
+Zero-order baseline: next-contact accuracy (all categories)    |   0.3965 |    [0.3507, 0.4423] |  163
+Scrambled chains: normalised Levenshtein, fixed                |   0.6102 |    [0.5890, 0.6315] |  164
+Scrambled chains: normalised Needleman-Wunsch, fixed           |  -1.1109 |  [-1.3402, -0.8817] |  164
+Scrambled chains: normalised Smith-Waterman, fixed             |   0.3436 |    [0.3272, 0.3599] |  164
+Scrambled chains: normalised Levenshtein, fitted               |   0.6498 |    [0.6327, 0.6668] |  164
+Scrambled chains: normalised Needleman-Wunsch, fitted          |  -1.9044 |  [-2.1143, -1.6945] |  164
+Scrambled chains: normalised Smith-Waterman, fitted            |   0.3791 |    [0.3619, 0.3962] |  164
+Scrambled chains: normalised Levenshtein, terminating          |   0.6706 |    [0.6623, 0.6790] |  164
+Scrambled chains: normalised Needleman-Wunsch, terminating     |  -2.7188 |  [-2.9321, -2.5054] |  164
+Scrambled chains: normalised Smith-Waterman, terminating       |   0.3839 |    [0.3732, 0.3945] |  164
+
+Model minus baseline on the same held-out episode (zero-order for log-likelihood and accuracy,
+scrambled chains for sequence similarity). Mean [95% CI]:
+  Log-likelihood per transition (main categories)         +0.3068 [+0.2429, +0.3708]  model better
+  Next-contact accuracy (main categories)                 +0.1464 [+0.1016, +0.1913]  model better
+  Log-likelihood per transition (all categories)          +0.3395 [+0.2825, +0.3966]  model better
+  Next-contact accuracy (all categories)                  +0.1233 [+0.0875, +0.1592]  model better
+  Normalised Levenshtein, fixed                           +0.0046 [+0.0024, +0.0068]  baseline better
+  Normalised Needleman-Wunsch, fixed                      -0.0199 [-0.0272, -0.0126]  baseline better
+  Normalised Smith-Waterman, fixed                        +0.0279 [+0.0237, +0.0322]  model better
+  Normalised Levenshtein, fitted                          +0.0039 [+0.0022, +0.0056]  baseline better
+  Normalised Needleman-Wunsch, fitted                     -0.0179 [-0.0243, -0.0116]  baseline better
+  Normalised Smith-Waterman, fitted                       +0.0287 [+0.0248, +0.0326]  model better
+  Normalised Levenshtein, terminating                     -0.0504 [-0.0546, -0.0463]  model better
+  Normalised Needleman-Wunsch, terminating                +0.2369 [+0.2191, +0.2548]  model better
+  Normalised Smith-Waterman, terminating                  +0.0558 [+0.0505, +0.0612]  model better
 
 Perplexity (main categories): 3.073
 Perplexity (all categories):  3.886

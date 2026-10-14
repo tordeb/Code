@@ -11,9 +11,6 @@
   "possible_histories_all": 7,
   "train_test_mae_main": 0.10392333718016844,
   "train_test_mae_all": 0.06090735013659897,
-  "train_test_chi2_p_main": 0.0,
-  "chi2_p_main": 7.83419783372073e-10,
-  "chi2_p_all": 2.1806461736531746e-10,
   "sensitivity_mae_5pct_main": 0.030851109410035642,
   "sensitivity_mae_5pct_all": 0.02669754427668789,
   "bootstrap_avg_std_main": 0.020144052910217532,
@@ -127,6 +124,84 @@
       "ci_low": -1.417924213909667,
       "ci_high": -1.2592991159808924,
       "n": 62
+    },
+    "loglik_main_zero": {
+      "mean": -1.484358593813376,
+      "ci_low": -1.5401730312479667,
+      "ci_high": -1.4285441563787855,
+      "n": 61
+    },
+    "accuracy_main_zero": {
+      "mean": 0.34221446549282014,
+      "ci_low": 0.2713555166475926,
+      "ci_high": 0.4130734143380477,
+      "n": 61
+    },
+    "loglik_all_zero": {
+      "mean": -1.7064325388557027,
+      "ci_low": -1.7668294240663565,
+      "ci_high": -1.646035653645049,
+      "n": 62
+    },
+    "accuracy_all_zero": {
+      "mean": 0.3074758079739365,
+      "ci_low": 0.24330169795371986,
+      "ci_high": 0.3716499179941531,
+      "n": 62
+    },
+    "lev_norm_fixed_scrambled": {
+      "mean": 0.6035201469579238,
+      "ci_low": 0.5827769215176998,
+      "ci_high": 0.6242633723981478,
+      "n": 62
+    },
+    "nw_norm_fixed_scrambled": {
+      "mean": -0.6885069508948779,
+      "ci_low": -0.8413698928880938,
+      "ci_high": -0.535644008901662,
+      "n": 62
+    },
+    "sw_norm_fixed_scrambled": {
+      "mean": 0.2989671933129595,
+      "ci_low": 0.2847977688766776,
+      "ci_high": 0.3131366177492414,
+      "n": 62
+    },
+    "lev_norm_fitted_scrambled": {
+      "mean": 0.620834721044907,
+      "ci_low": 0.6016723560214174,
+      "ci_high": 0.6399970860683966,
+      "n": 62
+    },
+    "nw_norm_fitted_scrambled": {
+      "mean": -0.9894207619820863,
+      "ci_low": -1.1358254304439088,
+      "ci_high": -0.8430160935202637,
+      "n": 62
+    },
+    "sw_norm_fitted_scrambled": {
+      "mean": 0.32253342346356967,
+      "ci_low": 0.3078894779404496,
+      "ci_high": 0.33717736898668976,
+      "n": 62
+    },
+    "lev_norm_terminating_scrambled": {
+      "mean": 0.6664333045684768,
+      "ci_low": 0.6577441646889836,
+      "ci_high": 0.6751224444479701,
+      "n": 62
+    },
+    "nw_norm_terminating_scrambled": {
+      "mean": -2.296781017733586,
+      "ci_low": -2.5005957484054466,
+      "ci_high": -2.092966287061725,
+      "n": 62
+    },
+    "sw_norm_terminating_scrambled": {
+      "mean": 0.3948509047276688,
+      "ci_low": 0.3848405692030421,
+      "ci_high": 0.40486124025229553,
+      "n": 62
     }
   },
   "cv_descriptions": {
@@ -147,6 +222,101 @@
     "loglik_main_smoothing_0.5": "Log-likelihood per transition (main categories), smoothing 0.5",
     "loglik_all_smoothing_0.1": "Log-likelihood per transition (all categories), smoothing 0.1",
     "loglik_all_smoothing_0.5": "Log-likelihood per transition (all categories), smoothing 0.5"
+  },
+  "cv_baseline_descriptions": {
+    "loglik_main_zero": "Zero-order baseline: log-likelihood per transition (main categories)",
+    "accuracy_main_zero": "Zero-order baseline: next-contact accuracy (main categories)",
+    "loglik_all_zero": "Zero-order baseline: log-likelihood per transition (all categories)",
+    "accuracy_all_zero": "Zero-order baseline: next-contact accuracy (all categories)",
+    "lev_norm_fixed_scrambled": "Scrambled chains: normalised Levenshtein, fixed",
+    "nw_norm_fixed_scrambled": "Scrambled chains: normalised Needleman-Wunsch, fixed",
+    "sw_norm_fixed_scrambled": "Scrambled chains: normalised Smith-Waterman, fixed",
+    "lev_norm_fitted_scrambled": "Scrambled chains: normalised Levenshtein, fitted",
+    "nw_norm_fitted_scrambled": "Scrambled chains: normalised Needleman-Wunsch, fitted",
+    "sw_norm_fitted_scrambled": "Scrambled chains: normalised Smith-Waterman, fitted",
+    "lev_norm_terminating_scrambled": "Scrambled chains: normalised Levenshtein, terminating",
+    "nw_norm_terminating_scrambled": "Scrambled chains: normalised Needleman-Wunsch, terminating",
+    "sw_norm_terminating_scrambled": "Scrambled chains: normalised Smith-Waterman, terminating"
+  },
+  "cv_vs_baseline": {
+    "loglik_main": {
+      "mean": 0.22131728638451298,
+      "ci_low": 0.13576201775548444,
+      "ci_high": 0.3068725550135415,
+      "n": 61
+    },
+    "accuracy_main": {
+      "mean": 0.182081565333704,
+      "ci_low": 0.09557425196212968,
+      "ci_high": 0.26858887870527837,
+      "n": 61
+    },
+    "loglik_all": {
+      "mean": 0.3658838508757368,
+      "ci_low": 0.29923593837935436,
+      "ci_high": 0.4325317633721193,
+      "n": 62
+    },
+    "accuracy_all": {
+      "mean": 0.18364586848819794,
+      "ci_low": 0.10739103758859314,
+      "ci_high": 0.25990069938780275,
+      "n": 62
+    },
+    "lev_norm_fixed": {
+      "mean": -0.001009321224047127,
+      "ci_low": -0.0065058848503135,
+      "ci_high": 0.004487242402219246,
+      "n": 62
+    },
+    "nw_norm_fixed": {
+      "mean": 0.002570879455248541,
+      "ci_low": -0.013765293284699043,
+      "ci_high": 0.018907052195196127,
+      "n": 62
+    },
+    "sw_norm_fixed": {
+      "mean": 0.03521554624086646,
+      "ci_low": 0.028388774980421708,
+      "ci_high": 0.04204231750131121,
+      "n": 62
+    },
+    "lev_norm_fitted": {
+      "mean": 0.0007372615345800538,
+      "ci_low": -0.004369057961221278,
+      "ci_high": 0.005843581030381386,
+      "n": 62
+    },
+    "nw_norm_fitted": {
+      "mean": 0.0006018423702536891,
+      "ci_low": -0.015482895001621455,
+      "ci_high": 0.016686579742128834,
+      "n": 62
+    },
+    "sw_norm_fitted": {
+      "mean": 0.036979596549172246,
+      "ci_low": 0.030033509155845132,
+      "ci_high": 0.043925683942499356,
+      "n": 62
+    },
+    "lev_norm_terminating": {
+      "mean": -0.09474714504504235,
+      "ci_low": -0.10035910508267967,
+      "ci_high": -0.08913518500740503,
+      "n": 62
+    },
+    "nw_norm_terminating": {
+      "mean": 0.42611430946098566,
+      "ci_low": 0.4103033473801377,
+      "ci_high": 0.44192527154183364,
+      "n": 62
+    },
+    "sw_norm_terminating": {
+      "mean": 0.09497972010500148,
+      "ci_low": 0.08855627378253485,
+      "ci_high": 0.10140316642746812,
+      "n": 62
+    }
   },
   "cv_perplexity": {
     "main": 3.536159698748838,
@@ -170,7 +340,13 @@
       "nw_mean": -8.785795918367347,
       "nw_norm_mean": -0.6815806247577462,
       "sw_mean": 10.38038775510204,
-      "sw_norm_mean": 0.3328140020582255
+      "sw_norm_mean": 0.3328140020582255,
+      "levenshtein_norm_scrambled": 0.5975049348197552,
+      "nw_norm_scrambled": -0.6744118869027885,
+      "sw_norm_scrambled": 0.29848333000081395,
+      "predicted_test_mae": 0.1012483408504575,
+      "shorter_than_observed": 0.0,
+      "longer_than_observed": 0.0
     },
     "fitted": {
       "name": "5x5_fitted",
@@ -184,7 +360,13 @@
       "nw_mean": -10.409836734693878,
       "nw_norm_mean": -0.9998157817316113,
       "sw_mean": 9.898448979591837,
-      "sw_norm_mean": 0.3596618998088629
+      "sw_norm_mean": 0.3596618998088629,
+      "levenshtein_norm_scrambled": 0.6145168133336715,
+      "nw_norm_scrambled": -0.9311026037058799,
+      "sw_norm_scrambled": 0.32214175871162587,
+      "predicted_test_mae": 0.10693965951977213,
+      "shorter_than_observed": 0.013,
+      "longer_than_observed": 0.006
     },
     "terminating": {
       "name": "7x7_terminating",
@@ -198,7 +380,13 @@
       "nw_mean": -12.131408163265306,
       "nw_norm_mean": -1.7375524088718064,
       "sw_mean": 9.58469387755102,
-      "sw_norm_mean": 0.4740950918556497
+      "sw_norm_mean": 0.4740950918556497,
+      "levenshtein_norm_scrambled": 0.657066155299899,
+      "nw_norm_scrambled": -2.077978702681257,
+      "sw_norm_scrambled": 0.3764337716607816,
+      "predicted_test_mae": 0.06183653675344684,
+      "shorter_than_observed": 0.146,
+      "longer_than_observed": 0.126
     }
   }
 }

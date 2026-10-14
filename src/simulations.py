@@ -260,6 +260,28 @@ time_fitted = time.time() - start_time
 
 
 # --------------------------------------------------------------------------------------------------------------------------------------
+# Simulated Lengths Outside the Observed Range
+# --------------------------------------------------------------------------------------------------------------------------------------
+# A mismatch in length can be two-sided: too many very short chains as well as a long tail. The length cap only
+# shortens the tail, so both ends are reported.
+
+def length_extremes(chains):
+    lengths = np.array([len(chain) for chain in chains])
+    return {
+        "shorter_than_observed": np.mean(lengths < real_lengths.min()),
+        "longer_than_observed": np.mean(lengths > real_lengths.max()),
+        "at_most_5": np.mean(lengths <= 5),
+        "percentile_5": np.percentile(lengths, 5),
+        "percentile_95": np.percentile(lengths, 95),
+    }
+
+observed_length_extremes = {
+    "min": real_lengths.min(), "max": real_lengths.max(), "at_most_5": np.mean(real_lengths <= 5),
+    "percentile_5": np.percentile(real_lengths, 5), "percentile_95": np.percentile(real_lengths, 95),
+}
+
+
+# --------------------------------------------------------------------------------------------------------------------------------------
 # Calculate Predicted Matrices
 # --------------------------------------------------------------------------------------------------------------------------------------
 # Note: for second-order only state pairs that occur in the simulations are printed in the matrices.
@@ -333,3 +355,6 @@ simulation_methods = {
         "time": time_terminating
     }
 }
+
+for method in simulation_methods.values():
+    method["length_extremes"] = length_extremes(method["chains"])
