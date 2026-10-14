@@ -2,31 +2,31 @@
 
 These notes explain what each file in `src/` does and how it works, for both the first-order and the second-order model.
 
-Both models are run by the **same code**. The only setting that changes between them is `ORDER` in `config.py`:
+Both models are run by the same code. Change orders through `ORDER` in `config.py`:
 
 - **First-order (`ORDER = 1`):** the next state depends only on the current state, `P(next | current)`.
 - **Second-order (`ORDER = 2`):** the next state depends on the previous and current state, `P(next | previous, current)`.
 
-The states the next state depends on are called the **history**: one state for first-order, a pair of states for second-order. Wherever the two models differ, these notes say so.
-
-
 # File Structure
 
-There are 9 files in `src/`. You can also run everything through Docker, which saves installing the Python packages locally (`dockerfile`, `requirements.txt`).
+There are 11 files in `src/`. Run everything through Docker to save installing the Python packages locally (`dockerfile`, `requirements.txt`).
 
-1. The Data: `data/movsdf.rbind_orientationcorrected.csv`
-   - 62 observed care periods, with each surface contact by the HCW recorded,
-   - Other columns include: care type, HCW type, orientation, date, time, and surface category.
+1. The Data: `data/MockVsActual_GithubDOI.csv` (from [MockVsActualHospitalCare](https://github.com/MarcoFelipeKing/MockVsActualHospitalCare))
+   - 164 care periods, with each surface contact by the HCW recorded:
+      - 62 mock care periods, all in single-bed rooms,
+      - 102 actual care periods: 44 in single-bed rooms (SB) and 58 in multi-bed rooms (MB).
+   - Columns: ActivityID, care type, HCW type, room type, surface, date, time, and type (Mock or Actual).
 
 2. Configuration and Constants: `config.py`
-   - The Markov chain order (1 or 2), set by `main.py`,
-   - The surface categories, split into "main" (5) and "all" (7),
+   - The Markov chain order (1 or 2) and the dataset (which episodes to use), both set by `main.py`,
+   - The mapping of each surface to a category, and the categories, split into "main" (5) and "all" (7),
    - The matrix labels: 5x5 and 7x7 (first-order), or 25x5 and 49x7 (second-order),
    - The transitions tracked in the convergence analysis,
    - File paths, the number of simulations, the maximum terminating-chain length, and the random seed.
 
 3. Loading the Data: `data_loader.py`
-   - Loads the data,
+   - Loads the data and adds the category of each surface,
+   - Keeps the episodes for the chosen dataset,
    - Splits it into 80% train data and 20% test data.
 
 4. Generating the Transition Matrices: `transition_matrices.py`
@@ -67,8 +67,16 @@ There are 9 files in `src/`. You can also run everything through Docker, which s
 9. Comparison: `compare.py`
    - Reads both `summary.json` files and puts the key results for first- and second-order side by side.
 
-`data_exploration.py` is a separate script for looking at the raw data. It is not part of the analysis.
+10. Dataset Comparison: `dataset_comparison.py`
+   - Compares mock with actual care, and single-bed with multi-bed rooms, to check whether the data can be pooled.
 
+11. Distances: `distances.py`
+   - The Hellinger distance function, shared by `metrics.py` and `dataset_comparison.py`.
+
+`data_exploration.py` is a separate script for looking at the raw data. It is not included in the analysis.
+
+ 
+--- 
 
 # Project Goals
 
@@ -78,7 +86,8 @@ There are 9 files in `src/`. You can also run everything through Docker, which s
 4. Produce 1000+ chains,
 5. Compare these matrices and chains,
 6. Plot these comparisons,
-7. Compare the first-order chain against the second-order chain, using identical methods for both.
+7. Compare the first-order chain against the second-order chain, using identical methods for both,
+8. Compare mock and actual care (and single- and multi-bed rooms) before pooling them for more data.
 
 
 ---
@@ -86,16 +95,29 @@ There are 9 files in `src/`. You can also run everything through Docker, which s
 # 1. Running the Code
 
 ```
-python src/main.py --order both     # first-order, second-order, then the comparison
-python src/main.py --order 1        # first-order only
-python src/main.py --order 2        # second-order only
+python src/main.py --order both --data combined    # first-order, second-order, then the comparison
+python src/main.py --order 1 --data mock           # first-order only, mock episodes only
+python src/dataset_comparison.py                   # mock vs actual, single-bed vs multi-bed
 ```
 
-`--order both` runs each order in its own Python process, one after the other, and then runs `compare.py`. Running them separately means the two models share the code but nothing else. Results go to:
+`--data` chooses which care episodes are used:
 
-- `output/first_order/`: `first_order_results.txt`, `summary.json`, and the figures,
-- `output/second_order/`: `second_order_results.txt`, `summary.json`, and the figures,
-- `output/comparison/`: `comparison_summary.txt`, `comparison_summary.csv`, and `comparison_metrics.png`.
+| `--data` | Episodes |
+|---|---|
+| `mock` | 62 mock (single-bed) |
+| `actual` | 102 actual (single- and multi-bed) |
+| `actual_sb` | 44 actual, single-bed |
+| `actual_mb` | 58 actual, multi-bed |
+| `combined_sb` | 62 mock + 44 actual single-bed = 106 |
+| `combined` (default) | 62 mock + 102 actual = 164 |
+
+`--order both` runs each order in its own Python process, one after the other, and then runs `compare.py`. Running them separately means the two models share the code but nothing else. Results go to a folder for the dataset, e.g. for `--data combined`:
+
+- `output/combined/first_order/`: `first_order_results.txt`, `summary.json`, and the figures,
+- `output/combined/second_order/`: `second_order_results.txt`, `summary.json`, and the figures,
+- `output/combined/comparison/`: `comparison_summary.txt`, `comparison_summary.csv`, and `comparison_metrics.png`.
+
+`dataset_comparison.py` writes to `output/data_comparison/`.
 
 The random seed (`--seed`, default 42) is the same for both orders. Running the code again with the same seed gives exactly the same results.
 
@@ -106,40 +128,28 @@ The random seed (`--seed`, default 42) is the same for both orders. Running the 
 
 # Category Definitions
 
+   Each surface in the data is mapped to a category (`surface_categories` in `config.py`). The mock and actual data were recorded with partly different surface names. The mock mapping is the one from the original categorised mock data (`movsdf.rbind_orientationcorrected.csv`). Each actual-only surface was given the category of the closest mock surface, and Curtain and Notes were assigned to FarPatient.
+
    ## 5 Main Categories
 
       ### 1. Equipment
-      - Equipment (general)
-      - IV (Intravenous equipment)
-      - ObsTrolley (Observation trolley)
-      - Sharps (Sharps container)
-      - Stethoscope
-      - Tray
+      - Mock: Equipment (general), IV (Intravenous equipment), ObsTrolley (Observation trolley), Sharps (Sharps container), Stethoscope, Tray
+      - Actual: BloodObsEq (blood / observation equipment), EqMisc (miscellaneous equipment), EqTray, IVDrip, IVStand, MedsTrolley (medication trolley), Nebuliser, Syringe, TabletComputer, and ObsTrolley, Sharps, Stethoscope, Tray
 
       ### 2. Patient
       - Direct contact with patient
 
       ### 3. NearPatient
-      - Bed
-      - Chair
-      - Table
+      - Mock: Bed, Chair, Table
+      - Actual: Bedding, OtherNear (other surfaces near the patient), Chair, Table
 
       ### 4. FarPatient
-      - Door
-      - Other (miscellaneous surfaces)
+      - Mock: Door, Other (miscellaneous surfaces)
+      - Actual: Curtain, Notes, OtherFar (other surfaces far from the patient), WindowBlind, Door
 
       ### 5. HygieneArea
-      - Alc (Alcohol gel dispenser)
-      - AlcOutside (Alcohol gel outside room)
-      - ApronOff (Apron disposal)
-      - ApronOn (Apron donning area)
-      - GlovesOff (Glove removal)
-      - GlovesOn (Glove donning)
-      - PaperTowel (Paper towel dispenser)
-      - Sink
-      - Soap (Soap dispenser)
-      - Waste (Waste bin)
-      - Wipes (Cleaning wipes)
+      - Mock: Alc (Alcohol gel dispenser), AlcOutside (Alcohol gel outside room), ApronOff (Apron disposal), ApronOn (Apron donning area), GlovesOff (Glove removal), GlovesOn (Glove donning), PaperTowel (Paper towel dispenser), Sink, Soap (Soap dispenser), Waste (Waste bin), Wipes (Cleaning wipes)
+      - Actual: AlcInside (Alcohol gel inside room), GownOff, GownOn, Tap, and AlcOutside, GlovesOff, GlovesOn, PaperTowel, Sink, Soap, Waste, Wipes
 
    ## 7 Categories
    Main categories plus two terminating states:
@@ -175,9 +185,19 @@ Each row of a transition matrix is a history, and each column is a possible next
 
 # 3. Loading the Data
 
+# Loading
+
+`load_data` reads `MockVsActual_GithubDOI.csv` and adds a "SurfaceCategories" column using the mapping in `config.py`. If a surface has no category, it stops with an error rather than silently dropping contacts.
+Mock and actual episodes are both numbered from 1, so each ActivityID is given a prefix to keep them apart: "M001"-"M062" for mock and "A001"-"A102" for actual.
+The episodes for the chosen dataset (`--data`) are then kept.
+
 # Splitting of Data
 
-The code finds all unique care episodes and multiplies the number of episodes by 0.8 to get a split point. The first 80% of whole episodes are used for training the transition matrices, and the remaining 20% of whole episodes are used for testing them. Each subset is stored in its own DataFrame (a table-like data structure).
+The data is split separately within each group (mock, actual single-bed, actual multi-bed). In each group the number of episodes is multiplied by 0.8 to get a split point. The first 80% of whole episodes are used for training the transition matrices, and the remaining 20% of whole episodes are used for testing them. This way the training and test data contain the same mix of groups. Each subset is stored in its own DataFrame (a table-like data structure).
+
+When there is more than one group, the training episodes are shuffled (using the random seed). The convergence analysis adds training episodes in order, so without shuffling it would see all of one group first.
+
+With `--data mock` this gives exactly the same split as the original analysis (49 training and 13 test episodes).
 
 
 ---
@@ -556,3 +576,39 @@ With `--order both`, it runs order 1, then order 2, each in its own process, and
 - `comparison_metrics.png`: bar charts of MAE, Hellinger distances and the normalised sequence-similarity scores.
 
 It also lists data coverage: how many of the possible histories were observed, and how many transitions never occurred, for each model.
+
+
+---
+
+# 10. Dataset Comparison
+
+`dataset_comparison.py` checks how similar the different groups of care episodes are, to decide whether they can be pooled into one training set. It makes three comparisons:
+
+1. Mock vs Actual (single-bed rooms): like-for-like, as all mock episodes took place in single-bed rooms,
+2. Mock vs Actual (all rooms),
+3. Actual single-bed vs Actual multi-bed.
+
+It works on whole episodes (not the train/test split) and uses first-order transitions, which have enough data to compare reliably.
+
+   ## What is compared
+
+   - Episode length: mean, median and standard deviation, a Mann-Whitney U test, and the Hellinger distance between the length distributions,
+   - Share of all contacts in each category: the total variation distance (half the sum of the differences in share: 0 = identical, 1 = no overlap) with a permutation test,
+   - Contacts per episode in each category: means, Mann-Whitney U tests and Hellinger distances,
+   - First-order transition matrices: the MAE between the two groups' 7x7 and 5x5 matrices (only rows observed in both groups), with a permutation test,
+   - How episodes start and end: the share starting with "In", ending with "Out", and leaving and re-entering mid-episode, with Fisher's exact test,
+   - Sequence similarity: the mean normalised Levenshtein distance between episodes within each group and between the two groups. If the "between" value is close to the "within" values, episodes from the two groups are about as alike as episodes from the same group.
+
+   ## Permutation tests
+
+   A permutation test asks: if the group labels meant nothing, how often would a difference at least this large appear by chance? It shuffles whole episodes between the two groups 2000 times and recalculates the statistic each time. The p-value is the proportion of shuffles with a difference at least as large as the real one.
+   Shuffling whole episodes, rather than single contacts, keeps the contacts from the same episode together. This matters because contacts within an episode are not independent.
+
+   p-values are not corrected for multiple testing, so they should be read alongside the size of each difference.
+
+   ## Outputs
+
+   `output/data_comparison/`:
+   - `data_comparison_summary.txt`: every statistic for all three comparisons,
+   - `data_comparison_summary.csv`: the key numbers in one table,
+   - one folder per comparison with `care_period_lengths.png`, `category_shares.png` and `transition_matrices.png` (both groups' matrices and their difference).
