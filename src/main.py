@@ -6,9 +6,11 @@
 # Main Execution Script
 # --------------------------------------------------------------------------------------------------------------------------------------
 # Usage:
-#   python src/main.py --order 1      first-order model only   -> output/first_order/
-#   python src/main.py --order 2      second-order model only  -> output/second_order/
-#   python src/main.py --order both   both models, then the side-by-side comparison -> output/comparison/
+#   python src/main.py --order 1      first-order model only   -> output/<data>/first_order/
+#   python src/main.py --order 2      second-order model only  -> output/<data>/second_order/
+#   python src/main.py --order both   both models, then the side-by-side comparison -> output/<data>/comparison/
+#
+#   --data chooses the care episodes: mock, actual, actual_sb, actual_mb, combined_sb or combined (default)
 #
 # Each order is run in its own Python process so the two runs cannot share any state; they share only the code.
 
@@ -23,6 +25,8 @@ def parse_args():
     parser = argparse.ArgumentParser(description="First- vs second-order Markov chain analysis")
     parser.add_argument("--order", choices=["1", "2", "both"], default="both",
                         help="Markov chain order to run (default: both, followed by the comparison)")
+    parser.add_argument("--data", choices=["mock", "actual", "actual_sb", "actual_mb", "combined_sb", "combined"],
+                        default="combined", help="Care episodes to use (default: combined, see config.py)")
     parser.add_argument("--seed", type=int, default=42, help="Random seed (default: 42)")
     return parser.parse_args()
 
@@ -53,9 +57,12 @@ def run_single_order():
     import numpy as np
 
     from config import (
-        ORDER, ORDER_NAME, MAIN_LABEL, ALL_LABEL, SEED, n_simulations, MAX_TERMINATING_LENGTH, OUTPUT_DIR
+        ORDER, ORDER_NAME, MAIN_LABEL, ALL_LABEL, SEED, n_simulations, MAX_TERMINATING_LENGTH, OUTPUT_DIR,
+        DATASET, DATASETS
     )
-    from data_loader import n_activities, train_ids, test_ids
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+    from data_loader import n_activities, train_ids, test_ids, split_summary
     from transition_matrices import (
         calculate_transition_matrix, observed_main, observed_all, train_start_probs_main, train_start_probs_all,
         test_matrix_main, test_matrix_all, convergence_main, convergence_all, target_main, target_all,
@@ -81,6 +88,10 @@ def run_single_order():
         hellinger_results
     )
     import plotting  # Saves all figures to OUTPUT_DIR
+    from cross_validation import (
+        cv_results, cv_summary, cv_perplexity, cv_by_group, cv_hellinger_lengths, CV_SCORES, SMOOTHING,
+        N_CV_SIMULATIONS
+    )
 
     unit = "State" if ORDER == 1 else "State Pair"
 
@@ -102,7 +113,8 @@ def run_single_order():
             print()
             print()
 
-            # Simulation Parameters
+            # Dataset and Simulation Parameters
+            print(f"Dataset = {DATASET}: {DATASETS[DATASET]['description']}")
             print(f"Simulations = {n_simulations}")
             print(f"Random seed = {SEED}")
             print(f"Maximum terminating-state chain length = {MAX_TERMINATING_LENGTH}")
@@ -113,6 +125,9 @@ def run_single_order():
             print(f"Total ActivityIDs: {n_activities}")
             print(f"Train ActivityIDs: {len(train_ids)} ({len(train_ids)/n_activities*100:.0f}%)")
             print(f"Test ActivityIDs: {len(test_ids)} ({len(test_ids)/n_activities*100:.0f}%)")
+            print()
+            print("Episodes by group (Source, RoomType):")
+            print(split_summary.to_string())
             print()
 
             # Transition Matrices
@@ -240,7 +255,10 @@ def run_single_order():
                 print()
 
             # Calculate MAE with Proper Alignment
-            print(f"=== Comparison of All Three Simulation Approaches ===")
+            print(f"=== Comparison of All Three Simulation Approaches (in-sample simulation check) ===")
+            print("Note: these compare simulated chains with the TRAINING data they were generated from, so they")
+            print("  check that the simulations reproduce the model; they shrink towards 0 as more chains are")
+            print("  simulated. The validation of the model is the leave-one-out cross-validation at the end.")
             print(f"  (a) Fixed length MAE ({MAIN_LABEL}):        {mae_main:.4f}")
             print(f"  (b) Terminating state MAE ({ALL_LABEL}):   {mae_all:.4f}")
             print(f"  (c) Fitted length MAE ({MAIN_LABEL}):       {mae_fitted:.4f}")
@@ -292,7 +310,7 @@ def run_single_order():
             for title, value_name, all_results in (("Levenshtein Distance Summary", "Distance", levenshtein_results),
                                                    ("Needleman-Wunsch Summary", "Score", nw_results),
                                                    ("Smith-Waterman Summary", "Score", sw_results)):
-                print(f"=== {title} ===")
+                print(f"=== {title} (simulated chains vs training episodes, in-sample) ===")
                 for method_name, res in all_results.items():
                     print(f"=== Method: ({method_name}) ===")
                     print(f"Observed chains:  {res['observed_count']}")
@@ -405,7 +423,7 @@ def run_single_order():
                 print()
 
             # Hellinger Distances
-            print("=== Summary of Hellinger Distances ===")
+            print("=== Summary of Hellinger Distances (simulated chains vs training episodes, in-sample) ===")
             print()
             for method_name, res in hellinger_results.items():
                 print(f"Method: {method_name}")
@@ -414,6 +432,38 @@ def run_single_order():
                     print(f"  {category}: {h_dist:.4f}")
                 print(f"  Average Hellinger Distance (Category Visits): {res['average_visits']:.4f}")
                 print()
+
+            # Leave-One-Out Cross-Validation
+            print("=" * 90)
+            print("=== Leave-One-Out Cross-Validation (validation on unseen episodes) ===")
+            print("=" * 90)
+            print(f"Each of the {len(cv_results)} episodes was held out in turn; the model was built from the other")
+            print(f"{len(cv_results) - 1} and scored on the held-out episode. Mean and 95% confidence interval over episodes.")
+            print(f"Log-likelihood and accuracy use add-{SMOOTHING} smoothing. Only transitions with at least two earlier")
+            print("contacts are scored, so first- and second-order are scored on exactly the same transitions.")
+            print(f"Sequence similarity: {N_CV_SIMULATIONS} chains simulated per held-out episode.")
+            print()
+            print(f"{'Score':<62} | {'Mean':>8} | {'95% CI':>19} | {'n':>4}")
+            print("-" * 102)
+            for key, description in CV_SCORES.items():
+                res = cv_summary[key]
+                ci = f"[{res['ci_low']:.4f}, {res['ci_high']:.4f}]"
+                print(f"{description:<62} | {res['mean']:>8.4f} | {ci:>19} | {res['n']:>4}")
+            print()
+            print(f"Perplexity (main categories): {cv_perplexity['main']:.3f}")
+            print(f"Perplexity (all categories):  {cv_perplexity['all']:.3f}")
+            print("(Perplexity = exp(-log-likelihood): the effective number of equally likely next contacts. Lower is better.)")
+            print()
+            print("Hellinger distance, held-out episode lengths vs cross-validation simulated chain lengths:")
+            for method, h_dist in cv_hellinger_lengths.items():
+                print(f"  {method}: {h_dist:.4f}")
+            print()
+            if len(cv_by_group) > 1:
+                print("Mean scores by group of the held-out episode:")
+                print(cv_by_group.round(4).to_string())
+                print()
+            print(f"Per-episode scores saved to {OUTPUT_DIR}/cross_validation_episodes.csv")
+            print()
 
         finally:
             sys.stdout = original_stdout
@@ -429,7 +479,9 @@ def run_single_order():
 
     summary = {
         "order": ORDER,
+        "dataset": DATASET,
         "seed": SEED,
+        "n_train": len(train_ids),
         "main_label": MAIN_LABEL,
         "all_label": ALL_LABEL,
         "observed_histories_main": observed_histories(observed_main),
@@ -452,6 +504,10 @@ def run_single_order():
         "convergence_main": f"{format_transition(target_main)}: {stability_main}",
         "convergence_all": f"{format_transition(target_all)}: {stability_all}",
         "capped_terminating_chains": simulation_counters["terminating"]["capped_chains"],
+        "cv": cv_summary,
+        "cv_descriptions": CV_SCORES,
+        "cv_perplexity": cv_perplexity,
+        "cv_hellinger_lengths": cv_hellinger_lengths,
         "methods": {}
     }
 
@@ -483,12 +539,13 @@ if __name__ == "__main__":
         # Run each order in a separate process, then compare
         for order in ("1", "2"):
             print(f"\n{'#' * 30} Running order {order} {'#' * 30}\n", flush=True)
-            subprocess.run([sys.executable, os.path.abspath(__file__), "--order", order, "--seed", str(args.seed)],
-                           check=True)
+            subprocess.run([sys.executable, os.path.abspath(__file__), "--order", order, "--data", args.data,
+                            "--seed", str(args.seed)], check=True)
 
         import compare
-        compare.main()
+        compare.main(args.data)
     else:
         os.environ["MARKOV_ORDER"] = args.order
+        os.environ["MARKOV_DATA"] = args.data
         os.environ["MARKOV_SEED"] = str(args.seed)
         run_single_order()

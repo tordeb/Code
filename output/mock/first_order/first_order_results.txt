@@ -3,6 +3,7 @@ FIRST-ORDER MARKOV CHAIN
 ==========================================================================================
 
 
+Dataset = mock: Mock care episodes only (62, single-bed)
 Simulations = 1000
 Random seed = 42
 Maximum terminating-state chain length = 100
@@ -11,6 +12,11 @@ Maximum terminating-state chain length = 100
 Total ActivityIDs: 62
 Train ActivityIDs: 49 (79%)
 Test ActivityIDs: 13 (21%)
+
+Episodes by group (Source, RoomType):
+                 train  test
+Source RoomType             
+Mock   SB           49    13
 
 === Transition Matrices ===
 === Function, Formula Explanation ===
@@ -105,20 +111,20 @@ Main categories (Equipment → Patient): MODERATE (rel. CI width = 0.47, drift =
 All categories (In → Equipment): INSUFFICIENT DATA (observed 1 time)
 
 Minimum episodes for stability:
-  Main categories: 45
+  Main categories: not reached
   All categories: not reached
   Current dataset: 49 episodes
 
 Is current data sufficient?
-  Main categories: YES
+  Main categories: NO
   All categories: NO
 
 === Simulations ====
 Running 1000 simulations for each method...
 Average Care Period Length: 19
 
-5x5 fixed length simulations: 0.11 seconds
-5x5 fitted length simulations: 0.11 seconds
+5x5 fixed length simulations: 0.10 seconds
+5x5 fitted length simulations: 0.10 seconds
 7x7 terminating state simulations: 0.11 seconds
 
 Steps where the history was never seen in training (next state picked at random):
@@ -147,7 +153,7 @@ Using: NegBinom(n=6.72, p=0.260)
 Sampled lengths: min=1, max=55, mean=18.98
 
 
-Fitted-length simulations completed in 0.11 seconds
+Fitted-length simulations completed in 0.10 seconds
 
 === Predicted 5x5 Matrix (from fixed-length simulations) ===
 Next_Category      Equipment  Patient  NearPatient  FarPatient  HygieneArea
@@ -196,7 +202,10 @@ Length: 23
 Started with: HygieneArea
 Ended with: Patient
 
-=== Comparison of All Three Simulation Approaches ===
+=== Comparison of All Three Simulation Approaches (in-sample simulation check) ===
+Note: these compare simulated chains with the TRAINING data they were generated from, so they
+  check that the simulations reproduce the model; they shrink towards 0 as more chains are
+  simulated. The validation of the model is the leave-one-out cross-validation at the end.
   (a) Fixed length MAE (5x5):        0.0058
   (b) Terminating state MAE (7x7):   0.0036
   (c) Fitted length MAE (5x5):       0.0054
@@ -272,7 +281,7 @@ Out                0.000      0.000    0.000        0.000       0.000        0.0
 Mean Absolute Error (Train vs Test) for 5x5: 0.1039
 Mean Absolute Error (Train vs Test) for 7x7: 0.0609
 
-=== Levenshtein Distance Summary ===
+=== Levenshtein Distance Summary (simulated chains vs training episodes, in-sample) ===
 === Method: (5x5_fixed) ===
 Observed chains:  49
 Simulated chains: 1000
@@ -301,7 +310,7 @@ Normal Fit (Normalised):  μ = 0.6015, σ = 0.1271
 Observed chains:  49
 Simulated chains: 1000
 Total comparisons: 49 x 1000 = 49,000
-Calculation time: 0.02 seconds
+Calculation time: 0.03 seconds
 Absolute Distance (Lower is better/more similar):
   Mean:   17.50
   Median: 17.00
@@ -345,12 +354,12 @@ Normalised Distance:
 Normal Fit (Absolute):    μ = 20.47, σ = 15.17
 Normal Fit (Normalised):  μ = 0.5694, σ = 0.1451
 
-=== Needleman-Wunsch Summary ===
+=== Needleman-Wunsch Summary (simulated chains vs training episodes, in-sample) ===
 === Method: (5x5_fixed) ===
 Observed chains:  49
 Simulated chains: 1000
 Total comparisons: 49 x 1000 = 49,000
-Calculation time: 25.57 seconds
+Calculation time: 26.43 seconds
 Absolute Score (Higher is better/more similar):
   Mean:   -8.79
   Median: -9.00
@@ -374,7 +383,7 @@ Normal Fit (Normalised):  μ = -0.6816, σ = 0.6466
 Observed chains:  49
 Simulated chains: 1000
 Total comparisons: 49 x 1000 = 49,000
-Calculation time: 25.07 seconds
+Calculation time: 27.07 seconds
 Absolute Score (Higher is better/more similar):
   Mean:   -10.41
   Median: -10.00
@@ -398,7 +407,7 @@ Normal Fit (Normalised):  μ = -0.9998, σ = 1.2047
 Observed chains:  49
 Simulated chains: 1000
 Total comparisons: 49 x 1000 = 49,000
-Calculation time: 27.53 seconds
+Calculation time: 28.60 seconds
 Absolute Score (Higher is better/more similar):
   Mean:   -12.13
   Median: -9.00
@@ -418,12 +427,12 @@ Normalised Score:
 Normal Fit (Absolute):    μ = -12.13, σ = 13.62
 Normal Fit (Normalised):  μ = -1.7376, σ = 2.2564
 
-=== Smith-Waterman Summary ===
+=== Smith-Waterman Summary (simulated chains vs training episodes, in-sample) ===
 === Method: (5x5_fixed) ===
 Observed chains:  49
 Simulated chains: 1000
 Total comparisons: 49 x 1000 = 49,000
-Calculation time: 8.69 seconds
+Calculation time: 9.30 seconds
 Absolute Score (Higher is better/more similar):
   Mean:   10.38
   Median: 10.00
@@ -447,7 +456,7 @@ Normal Fit (Normalised):  μ = 0.3328, σ = 0.1285
 Observed chains:  49
 Simulated chains: 1000
 Total comparisons: 49 x 1000 = 49,000
-Calculation time: 8.56 seconds
+Calculation time: 8.79 seconds
 Absolute Score (Higher is better/more similar):
   Mean:   9.90
   Median: 9.00
@@ -471,7 +480,7 @@ Normal Fit (Normalised):  μ = 0.3597, σ = 0.1580
 Observed chains:  49
 Simulated chains: 1000
 Total comparisons: 49 x 1000 = 49,000
-Calculation time: 9.54 seconds
+Calculation time: 9.61 seconds
 Absolute Score (Higher is better/more similar):
   Mean:   9.58
   Median: 8.00
@@ -581,7 +590,7 @@ Events that were missing in training but predicted by 5x5 simulations: 0
 Events that were missing in training but predicted by 7x7 simulations: 0
   None - simulations only predict events that were observed in training
 
-=== Summary of Hellinger Distances ===
+=== Summary of Hellinger Distances (simulated chains vs training episodes, in-sample) ===
 
 Method: 5x5_fixed
   Care Period Lengths: 0.7720
@@ -611,4 +620,44 @@ Method: 7x7_terminating
   HygieneArea: 0.2307
   Out: 0.1059
   Average Hellinger Distance (Category Visits): 0.2608
+
+==========================================================================================
+=== Leave-One-Out Cross-Validation (validation on unseen episodes) ===
+==========================================================================================
+Each of the 62 episodes was held out in turn; the model was built from the other
+61 and scored on the held-out episode. Mean and 95% confidence interval over episodes.
+Log-likelihood and accuracy use add-1 smoothing. Only transitions with at least two earlier
+contacts are scored, so first- and second-order are scored on exactly the same transitions.
+Sequence similarity: 100 chains simulated per held-out episode.
+
+Score                                                          |     Mean |              95% CI |    n
+------------------------------------------------------------------------------------------------------
+Log-likelihood per transition (main categories)                |  -1.2630 |  [-1.3577, -1.1683] |   61
+Log-likelihood per transition (all categories)                 |  -1.3405 |  [-1.4183, -1.2628] |   62
+Next-contact accuracy (main categories)                        |   0.5243 |    [0.4723, 0.5763] |   61
+Next-contact accuracy (all categories)                         |   0.4911 |    [0.4478, 0.5344] |   62
+Normalised Levenshtein, fixed (lower is better)                |   0.6025 |    [0.5811, 0.6239] |   62
+Normalised Needleman-Wunsch, fixed                             |  -0.6859 |  [-0.8397, -0.5322] |   62
+Normalised Smith-Waterman, fixed                               |   0.3342 |    [0.3190, 0.3494] |   62
+Normalised Levenshtein, fitted (lower is better)               |   0.6216 |    [0.6019, 0.6413] |   62
+Normalised Needleman-Wunsch, fitted                            |  -0.9888 |  [-1.1361, -0.8415] |   62
+Normalised Smith-Waterman, fitted                              |   0.3595 |    [0.3443, 0.3747] |   62
+Normalised Levenshtein, terminating (lower is better)          |   0.5717 |    [0.5598, 0.5836] |   62
+Normalised Needleman-Wunsch, terminating                       |  -1.8707 |  [-2.0735, -1.6678] |   62
+Normalised Smith-Waterman, terminating                         |   0.4898 |    [0.4763, 0.5034] |   62
+Log-likelihood per transition (main categories), smoothing 0.1 |  -1.2675 |  [-1.3664, -1.1687] |   61
+Log-likelihood per transition (main categories), smoothing 0.5 |  -1.2649 |  [-1.3618, -1.1681] |   61
+Log-likelihood per transition (all categories), smoothing 0.1  |  -1.3390 |  [-1.4199, -1.2581] |   62
+Log-likelihood per transition (all categories), smoothing 0.5  |  -1.3386 |  [-1.4179, -1.2593] |   62
+
+Perplexity (main categories): 3.536
+Perplexity (all categories):  3.821
+(Perplexity = exp(-log-likelihood): the effective number of equally likely next contacts. Lower is better.)
+
+Hellinger distance, held-out episode lengths vs cross-validation simulated chain lengths:
+  fixed: 0.8280
+  fitted: 0.1596
+  terminating: 0.4236
+
+Per-episode scores saved to C:\Users\VAdeB\OneDrive\Desktop\code\output\mock\first_order/cross_validation_episodes.csv
 

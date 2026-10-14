@@ -29,20 +29,70 @@ ORDER_NAME = {1: "first", 2: "second"}[ORDER]
 
 
 # --------------------------------------------------------------------------------------------------------------------------------------
+# Dataset
+# --------------------------------------------------------------------------------------------------------------------------------------
+# The data file holds 62 mock care episodes (all in single-bed rooms) and 102 actual care episodes
+# (44 in single-bed rooms, SB, and 58 in multi-bed rooms, MB).
+#
+# Set by main.py (python main.py --data <name>) through the MARKOV_DATA environment variable.
+
+DATASETS = {
+    "mock":        {"types": ["Mock"],           "rooms": ["SB", "MB"], "description": "Mock care episodes only (62, single-bed)"},
+    "actual":      {"types": ["Actual"],         "rooms": ["SB", "MB"], "description": "Actual care episodes only (102, single- and multi-bed)"},
+    "actual_sb":   {"types": ["Actual"],         "rooms": ["SB"],       "description": "Actual care episodes in single-bed rooms (44)"},
+    "actual_mb":   {"types": ["Actual"],         "rooms": ["MB"],       "description": "Actual care episodes in multi-bed rooms (58)"},
+    "combined_sb": {"types": ["Mock", "Actual"], "rooms": ["SB"],       "description": "Mock + actual single-bed episodes (106)"},
+    "combined":    {"types": ["Mock", "Actual"], "rooms": ["SB", "MB"], "description": "Mock + all actual episodes (164)"},
+}
+
+DATASET = os.environ.get("MARKOV_DATA", "combined")
+
+if DATASET not in DATASETS:
+    raise ValueError(f"MARKOV_DATA must be one of {list(DATASETS)}, got {DATASET}")
+
+
+# --------------------------------------------------------------------------------------------------------------------------------------
 # Define Categories
 # --------------------------------------------------------------------------------------------------------------------------------------
 # 5 main categories and all 7 categories:
 #
 # 5 main:
-# Equipment: Equipment, IV, ObsTrolley, Sharps, Stethoscope, Tray
+# Equipment: Equipment, IV, ObsTrolley, Sharps, Stethoscope, Tray (mock)
+#            BloodObsEq, EqMisc, EqTray, IVDrip, IVStand, MedsTrolley, Nebuliser, Syringe, TabletComputer (actual)
 # Patient: Patient
-# Near Patient: Bed, Chair, Table
-# Far Patient: Door, Other
-# Hygiene Areas: Alc, AlcOutside, ApronOff, ApronOn, GlovesOff, GlovesOn, PaperTowel, Sink, Soap, Waste, Wipes
+# Near Patient: Bed, Chair, Table (mock)
+#               Bedding, OtherNear (actual)
+# Far Patient: Door, Other (mock)
+#              Curtain, Notes, OtherFar, WindowBlind (actual)
+# Hygiene Areas: Alc, AlcOutside, ApronOff, ApronOn, GlovesOff, GlovesOn, PaperTowel, Sink, Soap, Waste, Wipes (mock)
+#                AlcInside, GownOff, GownOn, Tap (actual)
 #
 # +2 terminating categories:
 # In: In
 # Out: Out
+#
+# The mock mapping is the one used in movsdf.rbind_orientationcorrected.csv. The actual-only surfaces were mapped to
+# the category of the closest mock surface (e.g. GownOn like ApronOn, IVDrip like IV); Curtain and Notes were assigned
+# to FarPatient.
+
+surface_categories = {
+    "Equipment": [
+        "Equipment", "IV", "ObsTrolley", "Sharps", "Stethoscope", "Tray",
+        "BloodObsEq", "EqMisc", "EqTray", "IVDrip", "IVStand", "MedsTrolley", "Nebuliser", "Syringe", "TabletComputer",
+    ],
+    "Patient": ["Patient"],
+    "NearPatient": ["Bed", "Chair", "Table", "Bedding", "OtherNear"],
+    "FarPatient": ["Door", "Other", "Curtain", "Notes", "OtherFar", "WindowBlind"],
+    "HygieneArea": [
+        "Alc", "AlcOutside", "ApronOff", "ApronOn", "GlovesOff", "GlovesOn", "PaperTowel", "Sink", "Soap", "Waste",
+        "Wipes", "AlcInside", "GownOff", "GownOn", "Tap",
+    ],
+    "In": ["In"],
+    "Out": ["Out"],
+}
+
+# Surface -> category lookup, e.g. "IVDrip" -> "Equipment"
+SURFACE_TO_CATEGORY = {surface: category for category, surfaces in surface_categories.items() for surface in surfaces}
 
 main_categories = ["Equipment", "Patient", "NearPatient", "FarPatient", "HygieneArea"]
 all_categories = ["In", "Equipment", "Patient", "NearPatient", "FarPatient", "HygieneArea", "Out"]
@@ -76,13 +126,11 @@ convergence_targets = {
 
 PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-DATA_FILE = os.path.join(PROJECT_DIR, "data", "movsdf.rbind_orientationcorrected.csv")
+DATA_FILE = os.path.join(PROJECT_DIR, "data", "MockVsActual_GithubDOI.csv")
 OUTPUT_ROOT = os.path.join(PROJECT_DIR, "output")
-OUTPUT_DIR = os.path.join(OUTPUT_ROOT, f"{ORDER_NAME}_order")
-COMPARISON_DIR = os.path.join(OUTPUT_ROOT, "comparison")
-
-# Create output directory
-os.makedirs(OUTPUT_DIR, exist_ok=True)
+DATASET_DIR = os.path.join(OUTPUT_ROOT, DATASET)
+OUTPUT_DIR = os.path.join(DATASET_DIR, f"{ORDER_NAME}_order")
+COMPARISON_DIR = os.path.join(DATASET_DIR, "comparison")
 
 
 # --------------------------------------------------------------------------------------------------------------------------------------

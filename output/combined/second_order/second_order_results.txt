@@ -1,0 +1,1005 @@
+==========================================================================================
+SECOND-ORDER MARKOV CHAIN
+==========================================================================================
+
+
+Dataset = combined: Mock + all actual episodes (164)
+Simulations = 1000
+Random seed = 42
+Maximum terminating-state chain length = 100
+
+=== Train/Test Split ===
+Total ActivityIDs: 164
+Train ActivityIDs: 130 (79%)
+Test ActivityIDs: 34 (21%)
+
+Episodes by group (Source, RoomType):
+                 train  test
+Source RoomType             
+Mock   SB           49    13
+Actual MB           46    12
+       SB           35     9
+
+=== Transition Matrices ===
+=== Function, Formula Explanation ===
+
+Calculate transition probability matrices of any order using:
+First-order:  P(x_j | x_i) = x_ij / Σ(m=1 to M) x_im
+Second-order: P(x_k | x_i, x_j) = x_ijk / Σ(m=1 to M) x_ijm
+
+Parameters:
+data: DataFrame with transition data
+history_cols: Column names for the history (["SurfaceCategories"] for first-order,
+              ["Previous_Category", "SurfaceCategories"] for second-order)
+next_col: Column name for next state
+categories: List of category names
+
+Returns:
+- Transition probability matrix (rows = histories, columns = next state)
+
+
+=== Observed 25x5 Matrix (from training data) ===
+Next_Category                        Equipment  Patient  NearPatient  FarPatient  HygieneArea
+Previous_Category SurfaceCategories                                                          
+Equipment         Equipment              0.820    0.088        0.019       0.024        0.048
+                  FarPatient             0.481    0.038        0.000       0.346        0.135
+                  HygieneArea            0.379    0.029        0.010       0.087        0.495
+                  NearPatient            0.439    0.073        0.390       0.024        0.073
+                  Patient                0.647    0.277        0.016       0.022        0.038
+FarPatient        Equipment              0.533    0.133        0.040       0.187        0.107
+                  FarPatient             0.216    0.104        0.037       0.597        0.045
+                  HygieneArea            0.227    0.045        0.045       0.182        0.500
+                  NearPatient            0.118    0.118        0.118       0.529        0.118
+                  Patient                0.208    0.542        0.000       0.167        0.083
+HygieneArea       Equipment              0.576    0.109        0.022       0.163        0.130
+                  FarPatient             0.471    0.000        0.059       0.412        0.059
+                  HygieneArea            0.166    0.004        0.000       0.095        0.734
+                  NearPatient            0.500    0.500        0.000       0.000        0.000
+                  Patient                0.125    0.500        0.125       0.125        0.125
+NearPatient       Equipment              0.639    0.028        0.167       0.056        0.111
+                  FarPatient             0.067    0.000        0.333       0.533        0.067
+                  HygieneArea            0.250    0.125        0.000       0.000        0.625
+                  NearPatient            0.224    0.122        0.469       0.102        0.082
+                  Patient                0.235    0.412        0.235       0.118        0.000
+Patient           Equipment              0.597    0.253        0.022       0.032        0.097
+                  FarPatient             0.083    0.083        0.083       0.750        0.000
+                  HygieneArea            0.312    0.062        0.000       0.125        0.500
+                  NearPatient            0.312    0.188        0.375       0.125        0.000
+                  Patient                0.339    0.536        0.048       0.042        0.036
+
+=== Observed 49x7 Matrix (from training data) ===
+Next_Category                           In  Equipment  Patient  NearPatient  FarPatient  HygieneArea    Out
+Previous_Category SurfaceCategories                                                                        
+Equipment         Equipment          0.004      0.797    0.086        0.018       0.024        0.047  0.025
+                  FarPatient         0.042      0.347    0.028        0.000       0.250        0.097  0.236
+                  HygieneArea        0.009      0.368    0.028        0.009       0.085        0.481  0.019
+                  In                 0.000      0.765    0.059        0.118       0.000        0.059  0.000
+                  NearPatient        0.000      0.439    0.073        0.390       0.024        0.073  0.000
+                  Out                0.056      0.556    0.000        0.000       0.111        0.278  0.000
+                  Patient            0.000      0.647    0.277        0.016       0.022        0.038  0.000
+FarPatient        Equipment          0.012      0.494    0.123        0.037       0.173        0.099  0.062
+                  FarPatient         0.000      0.187    0.090        0.032       0.516        0.039  0.135
+                  HygieneArea        0.000      0.227    0.045        0.045       0.182        0.500  0.000
+                  In                 0.000      0.444    0.000        0.222       0.222        0.111  0.000
+                  NearPatient        0.000      0.118    0.118        0.118       0.529        0.118  0.000
+                  Out                0.000      0.000    0.000        0.000       0.000        1.000  0.000
+                  Patient            0.000      0.208    0.542        0.000       0.167        0.083  0.000
+HygieneArea       Equipment          0.039      0.520    0.098        0.020       0.147        0.118  0.059
+                  FarPatient         0.029      0.229    0.000        0.029       0.200        0.029  0.486
+                  HygieneArea        0.034      0.153    0.004        0.000       0.088        0.678  0.042
+                  In                 0.000      0.308    0.192        0.038       0.462        0.000  0.000
+                  NearPatient        0.000      0.500    0.500        0.000       0.000        0.000  0.000
+                  Out                0.000      0.000    0.000        0.000       0.500        0.500  0.000
+                  Patient            0.000      0.125    0.500        0.125       0.125        0.125  0.000
+In                Equipment          0.000      0.674    0.093        0.047       0.093        0.070  0.023
+                  FarPatient         0.000      0.224    0.104        0.075       0.493        0.104  0.000
+                  HygieneArea        0.000      0.900    0.100        0.000       0.000        0.000  0.000
+                  NearPatient        0.000      0.143    0.286        0.286       0.143        0.000  0.143
+                  Patient            0.000      0.333    0.667        0.000       0.000        0.000  0.000
+NearPatient       Equipment          0.000      0.605    0.026        0.158       0.053        0.105  0.053
+                  FarPatient         0.000      0.056    0.000        0.278       0.444        0.056  0.167
+                  HygieneArea        0.000      0.222    0.111        0.000       0.000        0.556  0.111
+                  NearPatient        0.000      0.224    0.122        0.469       0.102        0.082  0.000
+                  Out                1.000      0.000    0.000        0.000       0.000        0.000  0.000
+                  Patient            0.000      0.235    0.412        0.235       0.118        0.000  0.000
+Out               Equipment          0.111      0.667    0.000        0.000       0.111        0.111  0.000
+                  FarPatient         0.000      1.000    0.000        0.000       0.000        0.000  0.000
+                  HygieneArea        0.000      0.000    0.000        0.000       0.000        0.909  0.091
+                  In                 0.000      1.000    0.000        0.000       0.000        0.000  0.000
+Patient           Equipment          0.000      0.590    0.250        0.021       0.032        0.096  0.011
+                  FarPatient         0.000      0.056    0.056        0.056       0.500        0.000  0.333
+                  HygieneArea        0.000      0.312    0.062        0.000       0.125        0.500  0.000
+                  NearPatient        0.000      0.312    0.188        0.375       0.125        0.000  0.000
+                  Out                0.000      0.000    0.000        0.000       0.000        1.000  0.000
+                  Patient            0.000      0.337    0.533        0.047       0.041        0.036  0.006
+
+=== Starting State Pair Probabilities (from training data) ===
+25x5:
+(HygieneArea, HygieneArea)    0.417
+(Equipment, Equipment)        0.208
+(HygieneArea, Equipment)      0.167
+(Equipment, HygieneArea)      0.083
+(FarPatient, Equipment)       0.083
+(Equipment, FarPatient)       0.042
+Name: proportion, dtype: float64
+
+49x7:
+(In, FarPatient)              0.408
+(In, Equipment)               0.123
+(HygieneArea, In)             0.123
+(HygieneArea, HygieneArea)    0.077
+(In, HygieneArea)             0.062
+(Equipment, In)               0.046
+(Equipment, Equipment)        0.038
+(FarPatient, In)              0.038
+(HygieneArea, Equipment)      0.031
+(In, NearPatient)             0.015
+(Equipment, HygieneArea)      0.015
+(FarPatient, Equipment)       0.015
+(Equipment, FarPatient)       0.008
+Name: proportion, dtype: float64
+
+=== Test 25x5 Matrix using unseen data ===
+Next_Category                        Equipment  Patient  NearPatient  FarPatient  HygieneArea
+Previous_Category SurfaceCategories                                                          
+Equipment         Equipment              0.566    0.250        0.026       0.079        0.079
+                  FarPatient             0.571    0.000        0.143       0.286        0.000
+                  HygieneArea            0.000    0.000        0.125       0.375        0.500
+                  NearPatient            0.500    0.000        0.400       0.000        0.100
+                  Patient                0.562    0.406        0.000       0.031        0.000
+FarPatient        Equipment              0.476    0.143        0.095       0.286        0.000
+                  FarPatient             0.217    0.000        0.130       0.565        0.087
+                  HygieneArea            0.000    0.000        0.000       0.000        1.000
+                  NearPatient            0.667    0.000        0.333       0.000        0.000
+                  Patient                0.333    0.333        0.000       0.333        0.000
+HygieneArea       Equipment              0.000    0.000        1.000       0.000        0.000
+                  FarPatient             0.167    0.000        0.000       0.833        0.000
+                  HygieneArea            0.031    0.031        0.031       0.125        0.781
+                  NearPatient            0.000    0.000        1.000       0.000        0.000
+                  Patient                0.000    1.000        0.000       0.000        0.000
+NearPatient       Equipment              0.700    0.200        0.000       0.000        0.100
+                  FarPatient             0.000    1.000        0.000       0.000        0.000
+                  HygieneArea            0.000    0.000        0.000       0.500        0.500
+                  NearPatient            0.133    0.200        0.600       0.000        0.067
+                  Patient                0.000    0.800        0.200       0.000        0.000
+Patient           Equipment              0.424    0.242        0.121       0.152        0.061
+                  FarPatient             0.000    0.000        0.000       1.000        0.000
+                  NearPatient            0.333    0.333        0.000       0.333        0.000
+                  Patient                0.371    0.486        0.057       0.086        0.000
+
+=== Test 49x7 Matrix using unseen data ===
+Next_Category                           In  Equipment  Patient  NearPatient  FarPatient  HygieneArea    Out
+Previous_Category SurfaceCategories                                                                        
+Equipment         Equipment          0.000      0.558    0.247        0.026       0.078        0.078  0.013
+                  FarPatient         0.000      0.235    0.000        0.059       0.118        0.000  0.588
+                  HygieneArea        0.000      0.000    0.000        0.125       0.375        0.500  0.000
+                  In                 0.000      0.000    0.000        0.000       1.000        0.000  0.000
+                  NearPatient        0.000      0.500    0.000        0.400       0.000        0.100  0.000
+                  Out                0.000      0.000    0.000        0.000       0.000        1.000  0.000
+                  Patient            0.000      0.562    0.406        0.000       0.031        0.000  0.000
+FarPatient        Equipment          0.000      0.476    0.143        0.095       0.286        0.000  0.000
+                  FarPatient         0.088      0.147    0.000        0.088       0.382        0.059  0.235
+                  HygieneArea        0.250      0.000    0.000        0.000       0.000        0.750  0.000
+                  In                 0.000      0.000    0.400        0.200       0.400        0.000  0.000
+                  NearPatient        0.000      0.500    0.000        0.250       0.000        0.000  0.250
+                  Out                0.000      0.333    0.000        0.000       0.667        0.000  0.000
+                  Patient            0.000      0.333    0.333        0.000       0.333        0.000  0.000
+HygieneArea       Equipment          0.000      0.000    0.000        1.000       0.000        0.000  0.000
+                  FarPatient         0.111      0.111    0.000        0.000       0.556        0.000  0.222
+                  HygieneArea        0.056      0.028    0.028        0.028       0.111        0.694  0.056
+                  In                 0.000      0.333    0.000        0.000       0.667        0.000  0.000
+                  NearPatient        0.000      0.000    0.000        0.500       0.000        0.000  0.500
+                  Patient            0.000      0.000    1.000        0.000       0.000        0.000  0.000
+In                Equipment          0.000      0.667    0.000        0.333       0.000        0.000  0.000
+                  FarPatient         0.000      0.500    0.091        0.000       0.364        0.045  0.000
+                  HygieneArea        0.000      0.000    0.000        0.000       0.500        0.000  0.500
+                  NearPatient        0.000      0.000    1.000        0.000       0.000        0.000  0.000
+                  Patient            0.000      0.200    0.400        0.000       0.000        0.000  0.400
+NearPatient       Equipment          0.000      0.700    0.200        0.000       0.000        0.100  0.000
+                  FarPatient         0.000      0.000    1.000        0.000       0.000        0.000  0.000
+                  HygieneArea        0.000      0.000    0.000        0.000       0.500        0.500  0.000
+                  NearPatient        0.000      0.133    0.200        0.600       0.000        0.067  0.000
+                  Patient            0.000      0.000    0.800        0.200       0.000        0.000  0.000
+Out               Equipment          0.000      1.000    0.000        0.000       0.000        0.000  0.000
+                  FarPatient         0.000      0.000    0.000        0.000       0.667        0.333  0.000
+                  HygieneArea        0.000      0.000    0.000        0.000       0.000        1.000  0.000
+Patient           Equipment          0.000      0.424    0.242        0.121       0.152        0.061  0.000
+                  FarPatient         0.000      0.000    0.000        0.000       0.400        0.000  0.600
+                  NearPatient        0.000      0.333    0.333        0.000       0.333        0.000  0.000
+                  Out                0.000      0.000    0.000        0.000       0.600        0.400  0.000
+                  Patient            0.000      0.342    0.447        0.053       0.079        0.000  0.079
+
+=== Convergence Analysis ===
+Tracking transition (Main): HygieneArea → Equipment → Patient
+Tracking transition (All): In → FarPatient → Equipment
+
+Main Categories Convergence:
+    26 episodes: P = 0.1250 (  2/  16 transitions)
+    52 episodes: P = 0.1042 (  5/  48 transitions)
+    78 episodes: P = 0.0833 (  6/  72 transitions)
+   104 episodes: P = 0.0964 (  8/  83 transitions)
+   130 episodes: P = 0.1087 ( 10/  92 transitions)
+
+All Categories Convergence:
+    26 episodes: P = 0.1429 (  2/  14 transitions)
+    52 episodes: P = 0.2143 (  6/  28 transitions)
+    78 episodes: P = 0.2368 (  9/  38 transitions)
+   104 episodes: P = 0.2264 ( 12/  53 transitions)
+   130 episodes: P = 0.2239 ( 15/  67 transitions)
+
+=== Convergence Assessment ===
+Main categories (HygieneArea → Equipment → Patient): UNSTABLE (rel. CI width = 1.18, drift = 11%)
+All categories (In → FarPatient → Equipment): MODERATE (rel. CI width = 0.88, drift = 1%)
+
+Minimum episodes for stability:
+  Main categories: not reached
+  All categories: not reached
+  Current dataset: 130 episodes
+
+Is current data sufficient?
+  Main categories: NO
+  All categories: NO
+
+=== Simulations ====
+Running 1000 simulations for each method...
+Average Care Period Length: 26
+
+25x5 fixed length simulations: 0.13 seconds
+25x5 fitted length simulations: 0.13 seconds
+49x7 terminating state simulations: 0.13 seconds
+
+Steps where the history was never seen in training (next state picked at random):
+  25x5 fixed length: 0
+  25x5 fitted length: 0
+  49x7 terminating state: 0
+Terminating-state chains stopped at the maximum length before reaching 'Out': 25 of 1000
+
+=== Sequence Length Distribution Fitting ===
+Observed lengths: min=4, max=78
+Mean=26.53, Variance=276.56
+Variance/Mean ratio: 10.42 (>1 suggests over-dispersion)
+
+
+Distribution comparison (AIC = Akaike Information Criterion, lower is better):
+  Poisson(λ=26.53): AIC = 1923.03
+  NegBinom(n=2.82, p=0.096): AIC = 1067.62 <-- BEST FIT
+
+Goodness of fit test (Kolmogorov-Smirnov):
+  D-statistic: 0.0590
+  P-value: 0.7330
+  Result: Good fit (α=0.05)
+
+=== Simulations with Fitted Length Distribution ===
+Using: NegBinom(n=2.82, p=0.096)
+Sampled lengths: min=1, max=93, mean=26.47
+
+
+Fitted-length simulations completed in 0.13 seconds
+
+=== Predicted 25x5 Matrix (from fixed-length simulations) ===
+Next_Category                        Equipment  Patient  NearPatient  FarPatient  HygieneArea
+Previous_Category SurfaceCategories                                                          
+Equipment         Equipment              0.828    0.084        0.017       0.023        0.048
+                  FarPatient             0.489    0.037        0.000       0.342        0.132
+                  HygieneArea            0.398    0.028        0.007       0.083        0.485
+                  NearPatient            0.446    0.063        0.400       0.032        0.060
+                  Patient                0.648    0.275        0.023       0.015        0.039
+FarPatient        Equipment              0.534    0.134        0.045       0.186        0.101
+                  FarPatient             0.233    0.109        0.024       0.590        0.043
+                  HygieneArea            0.247    0.044        0.038       0.158        0.513
+                  NearPatient            0.122    0.061        0.159       0.561        0.098
+                  Patient                0.188    0.537        0.000       0.134        0.141
+HygieneArea       Equipment              0.594    0.107        0.021       0.144        0.135
+                  FarPatient             0.502    0.000        0.055       0.395        0.048
+                  HygieneArea            0.157    0.004        0.000       0.096        0.743
+                  NearPatient            0.583    0.417        0.000       0.000        0.000
+                  Patient                0.228    0.439        0.158       0.035        0.140
+NearPatient       Equipment              0.619    0.026        0.152       0.087        0.117
+                  FarPatient             0.067    0.000        0.315       0.539        0.079
+                  HygieneArea            0.385    0.096        0.000       0.000        0.519
+                  NearPatient            0.232    0.111        0.471       0.083        0.104
+                  Patient                0.262    0.476        0.107       0.155        0.000
+Patient           Equipment              0.563    0.266        0.027       0.038        0.106
+                  FarPatient             0.074    0.042        0.053       0.832        0.000
+                  HygieneArea            0.409    0.052        0.000       0.104        0.435
+                  NearPatient            0.300    0.255        0.336       0.109        0.000
+                  Patient                0.313    0.544        0.063       0.040        0.038
+
+=== Predicted 49x7 Matrix (from terminating-state simulations) ===
+Next_Category                           In  Equipment  Patient  NearPatient  FarPatient  HygieneArea    Out
+Previous_Category SurfaceCategories                                                                        
+Equipment         Equipment          0.005      0.794    0.087        0.018       0.024        0.047  0.025
+                  FarPatient         0.054      0.349    0.024        0.000       0.247        0.102  0.225
+                  HygieneArea        0.012      0.373    0.021        0.005       0.080        0.490  0.019
+                  In                 0.000      0.723    0.095        0.128       0.000        0.054  0.000
+                  NearPatient        0.000      0.394    0.094        0.421       0.030        0.061  0.000
+                  Patient            0.000      0.649    0.277        0.018       0.024        0.032  0.000
+FarPatient        Equipment          0.012      0.488    0.131        0.043       0.184        0.084  0.058
+                  FarPatient         0.000      0.194    0.100        0.032       0.501        0.041  0.131
+                  HygieneArea        0.000      0.276    0.039        0.061       0.188        0.436  0.000
+                  In                 0.000      0.506    0.000        0.188       0.212        0.094  0.000
+                  NearPatient        0.000      0.081    0.169        0.147       0.463        0.140  0.000
+                  Patient            0.000      0.214    0.582        0.000       0.138        0.066  0.000
+HygieneArea       Equipment          0.043      0.525    0.108        0.026       0.149        0.094  0.054
+                  FarPatient         0.028      0.255    0.000        0.045       0.224        0.014  0.434
+                  HygieneArea        0.035      0.161    0.004        0.000       0.082        0.682  0.036
+                  In                 0.000      0.295    0.179        0.029       0.498        0.000  0.000
+                  NearPatient        0.000      0.667    0.333        0.000       0.000        0.000  0.000
+                  Patient            0.000      0.170    0.472        0.170       0.075        0.113  0.000
+In                Equipment          0.000      0.656    0.088        0.050       0.084        0.088  0.034
+                  FarPatient         0.000      0.215    0.099        0.060       0.520        0.107  0.000
+                  HygieneArea        0.000      0.929    0.071        0.000       0.000        0.000  0.000
+                  NearPatient        0.000      0.176    0.137        0.333       0.176        0.000  0.176
+                  Patient            0.000      0.392    0.608        0.000       0.000        0.000  0.000
+NearPatient       Equipment          0.000      0.592    0.036        0.137       0.056        0.114  0.065
+                  FarPatient         0.000      0.063    0.000        0.287       0.483        0.063  0.105
+                  HygieneArea        0.000      0.176    0.095        0.000       0.000        0.608  0.122
+                  NearPatient        0.000      0.223    0.107        0.477       0.112        0.081  0.000
+                  Patient            0.000      0.267    0.407        0.215       0.111        0.000  0.000
+Patient           Equipment          0.000      0.606    0.236        0.024       0.032        0.094  0.007
+                  FarPatient         0.000      0.119    0.044        0.074       0.452        0.000  0.311
+                  HygieneArea        0.000      0.348    0.062        0.000       0.134        0.455  0.000
+                  NearPatient        0.000      0.368    0.176        0.360       0.096        0.000  0.000
+                  Patient            0.000      0.338    0.526        0.054       0.041        0.036  0.005
+
+=== Predicted 25x5 Matrix (from fitted-length simulations) ===
+Next_Category                        Equipment  Patient  NearPatient  FarPatient  HygieneArea
+Previous_Category SurfaceCategories                                                          
+Equipment         Equipment              0.818    0.092        0.019       0.026        0.046
+                  FarPatient             0.516    0.045        0.000       0.330        0.109
+                  HygieneArea            0.382    0.018        0.008       0.089        0.503
+                  NearPatient            0.430    0.094        0.369       0.036        0.071
+                  Patient                0.651    0.271        0.014       0.026        0.039
+FarPatient        Equipment              0.493    0.141        0.045       0.214        0.107
+                  FarPatient             0.219    0.092        0.037       0.606        0.046
+                  HygieneArea            0.241    0.065        0.035       0.182        0.476
+                  NearPatient            0.116    0.182        0.140       0.471        0.091
+                  Patient                0.181    0.544        0.000       0.174        0.101
+HygieneArea       Equipment              0.589    0.110        0.026       0.167        0.108
+                  FarPatient             0.419    0.000        0.070       0.437        0.074
+                  HygieneArea            0.160    0.004        0.000       0.090        0.745
+                  NearPatient            0.500    0.500        0.000       0.000        0.000
+                  Patient                0.161    0.446        0.125       0.161        0.107
+NearPatient       Equipment              0.640    0.016        0.172       0.056        0.116
+                  FarPatient             0.059    0.000        0.363       0.500        0.078
+                  HygieneArea            0.275    0.157        0.000       0.000        0.569
+                  NearPatient            0.251    0.107        0.478       0.090        0.074
+                  Patient                0.186    0.441        0.255       0.118        0.000
+Patient           Equipment              0.585    0.274        0.024       0.034        0.084
+                  FarPatient             0.098    0.089        0.089       0.723        0.000
+                  HygieneArea            0.336    0.071        0.000       0.168        0.425
+                  NearPatient            0.293    0.174        0.402       0.130        0.000
+                  Patient                0.347    0.537        0.044       0.034        0.037
+
+25x5 Simulation (Fixed Length)
+['Equipment', 'HygieneArea', 'HygieneArea', 'HygieneArea', 'HygieneArea', 'Equipment', 'FarPatient', 'Equipment', 'FarPatient', 'FarPatient', 'FarPatient', 'FarPatient', 'FarPatient', 'FarPatient', 'FarPatient', 'FarPatient', 'Patient', 'FarPatient', 'FarPatient', 'Equipment', 'Equipment', 'Equipment', 'Equipment', 'Equipment', 'Equipment', 'NearPatient']
+Length: 26
+Started with: Equipment
+Ended with: NearPatient
+
+49x7 Simulation (Terminating State)
+['In', 'FarPatient', 'FarPatient', 'Patient', 'HygieneArea', 'Equipment', 'Equipment', 'NearPatient', 'NearPatient', 'FarPatient', 'FarPatient', 'Equipment', 'Equipment', 'Equipment', 'Equipment', 'Equipment', 'FarPatient', 'Equipment', 'In', 'NearPatient', 'NearPatient', 'NearPatient', 'HygieneArea', 'HygieneArea', 'HygieneArea', 'HygieneArea', 'HygieneArea', 'HygieneArea', 'HygieneArea', 'HygieneArea', 'HygieneArea', 'Equipment', 'Equipment', 'Equipment', 'Equipment', 'Equipment', 'Patient', 'Patient', 'Equipment', 'Equipment', 'Equipment', 'FarPatient', 'FarPatient', 'HygieneArea', 'Patient', 'NearPatient', 'NearPatient', 'NearPatient', 'NearPatient', 'NearPatient', 'HygieneArea', 'Out']
+Length: 52
+Started with: In
+Ended with: Out
+
+25x5 Simulation (Fitted Distribution)
+['HygieneArea', 'HygieneArea', 'HygieneArea', 'Equipment', 'HygieneArea', 'HygieneArea', 'HygieneArea', 'HygieneArea', 'HygieneArea', 'HygieneArea', 'HygieneArea', 'HygieneArea', 'HygieneArea', 'FarPatient', 'FarPatient', 'FarPatient', 'FarPatient', 'Equipment', 'Equipment', 'FarPatient', 'FarPatient', 'FarPatient', 'FarPatient', 'FarPatient', 'FarPatient', 'FarPatient', 'HygieneArea', 'HygieneArea', 'Equipment', 'FarPatient', 'Patient', 'Patient', 'Patient']
+Length: 33
+Started with: HygieneArea
+Ended with: Patient
+
+=== Comparison of All Three Simulation Approaches (in-sample simulation check) ===
+Note: these compare simulated chains with the TRAINING data they were generated from, so they
+  check that the simulations reproduce the model; they shrink towards 0 as more chains are
+  simulated. The validation of the model is the leave-one-out cross-validation at the end.
+  (a) Fixed length MAE (25x5):        0.0194
+  (b) Terminating state MAE (49x7):   0.0414
+  (c) Fitted length MAE (25x5):       0.0131
+
+Note: Comparing 25x5 vs 49x7 is not strictly like-for-like
+  because 49x7 has more parameters and includes
+  terminating states (In/Out). However, the 49x7 MAE of 0.0414
+  shows how well the terminating model performs overall.
+
+
+=== Dictionary Inventory ===
+Method                    | Chains     | Avg. Chain Len  | MAE       
+-----------------------------------------------------------------
+25x5 fixed length         | 1000       | 26.00           | 0.0194    
+25x5 fitted length        | 1000       | 26.48           | 0.0131    
+49x7 terminating state    | 1000       | 26.84           | 0.0414    
+
+=== Difference between Observed and Predicted Matrices ===
+For 25x5 matrix
+Next_Category                        Equipment  Patient  NearPatient  FarPatient  HygieneArea
+Previous_Category SurfaceCategories                                                          
+Equipment         Equipment             -0.008    0.004        0.002       0.002       -0.000
+                  FarPatient            -0.008    0.001        0.000       0.004        0.003
+                  HygieneArea           -0.019    0.001        0.003       0.005        0.010
+                  NearPatient           -0.007    0.010       -0.010      -0.007        0.014
+                  Patient               -0.001    0.002       -0.006       0.007       -0.001
+FarPatient        Equipment             -0.001   -0.001       -0.005       0.000        0.006
+                  FarPatient            -0.017   -0.004        0.013       0.007        0.001
+                  HygieneArea           -0.020    0.001        0.007       0.024       -0.013
+                  NearPatient           -0.004    0.057       -0.041      -0.032        0.020
+                  Patient                0.020    0.005        0.000       0.032       -0.058
+HygieneArea       Equipment             -0.017    0.002        0.001       0.019       -0.004
+                  FarPatient            -0.032    0.000        0.004       0.016        0.011
+                  HygieneArea            0.009   -0.000        0.000      -0.000       -0.009
+                  NearPatient           -0.083    0.083        0.000       0.000        0.000
+                  Patient               -0.103    0.061       -0.033       0.090       -0.015
+NearPatient       Equipment              0.020    0.002        0.015      -0.031       -0.006
+                  FarPatient            -0.001    0.000        0.019      -0.006       -0.012
+                  HygieneArea           -0.135    0.029        0.000       0.000        0.106
+                  NearPatient           -0.007    0.012       -0.001       0.019       -0.022
+                  Patient               -0.027   -0.064        0.128      -0.037        0.000
+Patient           Equipment              0.034   -0.014       -0.006      -0.006       -0.009
+                  FarPatient             0.010    0.041        0.031      -0.082        0.000
+                  HygieneArea           -0.096    0.010        0.000       0.021        0.065
+                  NearPatient            0.013   -0.067        0.039       0.016        0.000
+                  Patient                0.026   -0.009       -0.016       0.001       -0.003
+
+For 49x7 matrix
+Next_Category                           In  Equipment  Patient  NearPatient  FarPatient  HygieneArea    Out
+Previous_Category SurfaceCategories                                                                        
+Equipment         Equipment         -0.001      0.003   -0.001        0.000      -0.000       -0.001 -0.001
+                  FarPatient        -0.012     -0.001    0.004        0.000       0.003       -0.004  0.011
+                  HygieneArea       -0.002     -0.005    0.007        0.005       0.005       -0.009 -0.000
+                  In                 0.000      0.042   -0.036       -0.011       0.000        0.005  0.000
+                  NearPatient        0.000      0.045   -0.021       -0.031      -0.006        0.013  0.000
+                  Out                0.056      0.556    0.000        0.000       0.111        0.278  0.000
+                  Patient            0.000     -0.002    0.000       -0.002      -0.002        0.006  0.000
+FarPatient        Equipment          0.001      0.006   -0.008       -0.006      -0.012        0.015  0.004
+                  FarPatient         0.000     -0.007   -0.010       -0.000       0.015       -0.003  0.004
+                  HygieneArea        0.000     -0.049    0.007       -0.015      -0.006        0.064  0.000
+                  In                 0.000     -0.061    0.000        0.034       0.010        0.017  0.000
+                  NearPatient        0.000      0.037   -0.051       -0.029       0.066       -0.022  0.000
+                  Out                0.000      0.000    0.000        0.000       0.000        1.000  0.000
+                  Patient            0.000     -0.006   -0.040        0.000       0.029        0.017  0.000
+HygieneArea       Equipment         -0.004     -0.006   -0.010       -0.006      -0.002        0.024  0.005
+                  FarPatient         0.001     -0.027    0.000       -0.017      -0.024        0.015  0.052
+                  HygieneArea       -0.000     -0.008   -0.000        0.000       0.006       -0.004  0.006
+                  In                 0.000      0.013    0.014        0.009      -0.036        0.000  0.000
+                  NearPatient        0.000     -0.167    0.167        0.000       0.000        0.000  0.000
+                  Out                0.000      0.000    0.000        0.000       0.500        0.500  0.000
+                  Patient            0.000     -0.045    0.028       -0.045       0.050        0.012  0.000
+In                Equipment          0.000      0.018    0.006       -0.003       0.009       -0.018 -0.011
+                  FarPatient         0.000      0.009    0.005        0.015      -0.027       -0.002  0.000
+                  HygieneArea        0.000     -0.029    0.029        0.000       0.000        0.000  0.000
+                  NearPatient        0.000     -0.034    0.148       -0.048      -0.034        0.000 -0.034
+                  Patient            0.000     -0.059    0.059        0.000       0.000        0.000  0.000
+NearPatient       Equipment          0.000      0.014   -0.010        0.021      -0.003       -0.009 -0.013
+                  FarPatient         0.000     -0.007    0.000       -0.009      -0.038       -0.007  0.062
+                  HygieneArea        0.000      0.047    0.017        0.000       0.000       -0.053 -0.011
+                  NearPatient        0.000      0.001    0.015       -0.007      -0.010        0.000  0.000
+                  Out                1.000      0.000    0.000        0.000       0.000        0.000  0.000
+                  Patient            0.000     -0.031    0.004        0.020       0.007        0.000  0.000
+Out               Equipment          0.111      0.667    0.000        0.000       0.111        0.111  0.000
+                  FarPatient         0.000      1.000    0.000        0.000       0.000        0.000  0.000
+                  HygieneArea        0.000      0.000    0.000        0.000       0.000        0.909  0.091
+                  In                 0.000      1.000    0.000        0.000       0.000        0.000  0.000
+Patient           Equipment          0.000     -0.016    0.014       -0.003      -0.000        0.001  0.004
+                  FarPatient         0.000     -0.063    0.011       -0.019       0.048        0.000  0.022
+                  HygieneArea        0.000     -0.036    0.000        0.000      -0.009        0.045  0.000
+                  NearPatient        0.000     -0.055    0.011        0.015       0.029        0.000  0.000
+                  Out                0.000      0.000    0.000        0.000       0.000        1.000  0.000
+                  Patient            0.000     -0.001    0.006       -0.007       0.001       -0.000  0.001
+
+For 25x5 fitted-length matrix
+Next_Category                        Equipment  Patient  NearPatient  FarPatient  HygieneArea
+Previous_Category SurfaceCategories                                                          
+Equipment         Equipment              0.003   -0.003        0.000      -0.002        0.002
+                  FarPatient            -0.035   -0.007        0.000       0.016        0.026
+                  HygieneArea           -0.003    0.011        0.002      -0.002       -0.008
+                  NearPatient            0.009   -0.021        0.021      -0.011        0.002
+                  Patient               -0.004    0.006        0.002      -0.004       -0.001
+FarPatient        Equipment              0.040   -0.007       -0.005      -0.028       -0.000
+                  FarPatient            -0.003    0.012        0.000      -0.009       -0.001
+                  HygieneArea           -0.014   -0.019        0.010      -0.001        0.024
+                  NearPatient            0.002   -0.064       -0.023       0.058        0.027
+                  Patient                0.027   -0.002        0.000      -0.008       -0.017
+HygieneArea       Equipment             -0.013   -0.001       -0.004      -0.004        0.022
+                  FarPatient             0.052    0.000       -0.011      -0.025       -0.016
+                  HygieneArea            0.006    0.000        0.000       0.005       -0.011
+                  NearPatient            0.000    0.000        0.000       0.000        0.000
+                  Patient               -0.036    0.054        0.000      -0.036        0.018
+NearPatient       Equipment             -0.001    0.012       -0.005      -0.000       -0.005
+                  FarPatient             0.008    0.000       -0.029       0.033       -0.012
+                  HygieneArea           -0.025   -0.032        0.000       0.000        0.056
+                  NearPatient           -0.026    0.015       -0.009       0.012        0.008
+                  Patient                0.049   -0.029       -0.020       0.000        0.000
+Patient           Equipment              0.012   -0.021       -0.002      -0.001        0.013
+                  FarPatient            -0.015   -0.006       -0.006       0.027        0.000
+                  HygieneArea           -0.024   -0.008        0.000      -0.043        0.075
+                  NearPatient            0.019    0.014       -0.027      -0.005        0.000
+                  Patient               -0.008   -0.002        0.003       0.008       -0.002
+
+Mean Absolute Error for 25x5 (fixed length): 0.0194
+Mean Absolute Error for 49x7: 0.0414
+Mean Absolute Error for 25x5 (fitted length): 0.0131
+
+==== Difference between Observed and Test Matrices ===
+For 25x5 matrix
+Next_Category                        Equipment  Patient  NearPatient  FarPatient  HygieneArea
+Previous_Category SurfaceCategories                                                          
+Equipment         Equipment              0.254   -0.162       -0.007      -0.054       -0.031
+                  FarPatient            -0.091    0.038       -0.143       0.060        0.135
+                  HygieneArea            0.379    0.029       -0.115      -0.288       -0.005
+                  NearPatient           -0.061    0.073       -0.010       0.024       -0.027
+                  Patient                0.084   -0.129        0.016      -0.010        0.038
+FarPatient        Equipment              0.057   -0.010       -0.055      -0.099        0.107
+                  FarPatient            -0.001    0.104       -0.093       0.032       -0.042
+                  HygieneArea            0.227    0.045        0.045       0.182       -0.500
+                  NearPatient           -0.549    0.118       -0.216       0.529        0.118
+                  Patient               -0.125    0.208        0.000      -0.167        0.083
+HygieneArea       Equipment              0.576    0.109       -0.978       0.163        0.130
+                  FarPatient             0.304    0.000        0.059      -0.422        0.059
+                  HygieneArea            0.135   -0.027       -0.031      -0.030       -0.047
+                  NearPatient            0.500    0.500       -1.000       0.000        0.000
+                  Patient                0.125   -0.500        0.125       0.125        0.125
+NearPatient       Equipment             -0.061   -0.172        0.167       0.056        0.011
+                  FarPatient             0.067   -1.000        0.333       0.533        0.067
+                  HygieneArea            0.250    0.125        0.000      -0.500        0.125
+                  NearPatient            0.091   -0.078       -0.131       0.102        0.015
+                  Patient                0.235   -0.388        0.035       0.118        0.000
+Patient           Equipment              0.173    0.010       -0.100      -0.119        0.036
+                  FarPatient             0.083    0.083        0.083      -0.250        0.000
+                  HygieneArea            0.312    0.062        0.000       0.125        0.500
+                  NearPatient           -0.021   -0.146        0.375      -0.208        0.000
+                  Patient               -0.032    0.050       -0.010      -0.044        0.036
+
+For 49x7 matrix
+Next_Category                           In  Equipment  Patient  NearPatient  FarPatient  HygieneArea    Out
+Previous_Category SurfaceCategories                                                                        
+Equipment         Equipment          0.004      0.238   -0.161       -0.008      -0.054       -0.031  0.012
+                  FarPatient         0.042      0.112    0.028       -0.059       0.132        0.097 -0.352
+                  HygieneArea        0.009      0.368    0.028       -0.116      -0.290       -0.019  0.019
+                  In                 0.000      0.765    0.059        0.118      -1.000        0.059  0.000
+                  NearPatient        0.000     -0.061    0.073       -0.010       0.024       -0.027  0.000
+                  Out                0.056      0.556    0.000        0.000       0.111       -0.722  0.000
+                  Patient            0.000      0.084   -0.129        0.016      -0.010        0.038  0.000
+FarPatient        Equipment          0.012      0.018   -0.019       -0.058      -0.113        0.099  0.062
+                  FarPatient        -0.088      0.040    0.090       -0.056       0.134       -0.020 -0.100
+                  HygieneArea       -0.250      0.227    0.045        0.045       0.182       -0.250  0.000
+                  In                 0.000      0.444   -0.400        0.022      -0.178        0.111  0.000
+                  NearPatient        0.000     -0.382    0.118       -0.132       0.529        0.118 -0.250
+                  Out                0.000     -0.333    0.000        0.000      -0.667        1.000  0.000
+                  Patient            0.000     -0.125    0.208        0.000      -0.167        0.083  0.000
+HygieneArea       Equipment          0.039      0.520    0.098       -0.980       0.147        0.118  0.059
+                  FarPatient        -0.083      0.117    0.000        0.029      -0.356        0.029  0.263
+                  HygieneArea       -0.021      0.125   -0.024       -0.028      -0.023       -0.016 -0.013
+                  In                 0.000     -0.026    0.192        0.038      -0.205        0.000  0.000
+                  NearPatient        0.000      0.500    0.500       -0.500       0.000        0.000 -0.500
+                  Out                0.000      0.000    0.000        0.000       0.500        0.500  0.000
+                  Patient            0.000      0.125   -0.500        0.125       0.125        0.125  0.000
+In                Equipment          0.000      0.008    0.093       -0.287       0.093        0.070  0.023
+                  FarPatient         0.000     -0.276    0.014        0.075       0.129        0.059  0.000
+                  HygieneArea        0.000      0.900    0.100        0.000      -0.500        0.000 -0.500
+                  NearPatient        0.000      0.143   -0.714        0.286       0.143        0.000  0.143
+                  Patient            0.000      0.133    0.267        0.000       0.000        0.000 -0.400
+NearPatient       Equipment          0.000     -0.095   -0.174        0.158       0.053        0.005  0.053
+                  FarPatient         0.000      0.056   -1.000        0.278       0.444        0.056  0.167
+                  HygieneArea        0.000      0.222    0.111        0.000      -0.500        0.056  0.111
+                  NearPatient        0.000      0.091   -0.078       -0.131       0.102        0.015  0.000
+                  Out                1.000      0.000    0.000        0.000       0.000        0.000  0.000
+                  Patient            0.000      0.235   -0.388        0.035       0.118        0.000  0.000
+Out               Equipment          0.111     -0.333    0.000        0.000       0.111        0.111  0.000
+                  FarPatient         0.000      1.000    0.000        0.000      -0.667       -0.333  0.000
+                  HygieneArea        0.000      0.000    0.000        0.000       0.000       -0.091  0.091
+                  In                 0.000      1.000    0.000        0.000       0.000        0.000  0.000
+Patient           Equipment          0.000      0.166    0.008       -0.100      -0.120        0.035  0.011
+                  FarPatient         0.000      0.056    0.056        0.056       0.100        0.000 -0.267
+                  HygieneArea        0.000      0.312    0.062        0.000       0.125        0.500  0.000
+                  NearPatient        0.000     -0.021   -0.146        0.375      -0.208        0.000  0.000
+                  Out                0.000      0.000    0.000        0.000      -0.600        0.600  0.000
+                  Patient            0.000     -0.005    0.085       -0.005      -0.038        0.036 -0.073
+
+Mean Absolute Error (Train vs Test) for 25x5: 0.1565
+Mean Absolute Error (Train vs Test) for 49x7: 0.1358
+
+=== Levenshtein Distance Summary (simulated chains vs training episodes, in-sample) ===
+=== Method: (25x5_fixed) ===
+Observed chains:  130
+Simulated chains: 1000
+Total comparisons: 130 x 1000 = 130,000
+Calculation time: 0.06 seconds
+Absolute Distance (Lower is better/more similar):
+  Mean:   22.92
+  Median: 21.00
+  Mode:   24.00
+  Std:    9.53
+  Min:    4.00
+  Max:    75.00
+  Skew:   2.050
+Normalised Distance:
+  Mean:   0.6029
+  Median: 0.5849
+  Mode:   0.6000
+  Std:    0.1749
+  Min:    0.0877
+  Max:    1.0000
+  Skew:   0.226
+Normal Fit (Absolute):    μ = 22.92, σ = 9.53
+Normal Fit (Normalised):  μ = 0.6029, σ = 0.1749
+
+=== Method: (25x5_fitted) ===
+Observed chains:  130
+Simulated chains: 1000
+Total comparisons: 130 x 1000 = 130,000
+Calculation time: 0.06 seconds
+Absolute Distance (Lower is better/more similar):
+  Mean:   26.02
+  Median: 23.00
+  Mode:   17.00
+  Std:    13.44
+  Min:    2.00
+  Max:    91.00
+  Skew:   1.157
+Normalised Distance:
+  Mean:   0.6400
+  Median: 0.6333
+  Mode:   1.0000
+  Std:    0.1773
+  Min:    0.0435
+  Max:    1.0000
+  Skew:   0.035
+Normal Fit (Absolute):    μ = 26.02, σ = 13.44
+Normal Fit (Normalised):  μ = 0.6400, σ = 0.1773
+
+=== Method: (49x7_terminating) ===
+Observed chains:  130
+Simulated chains: 1000
+Total comparisons: 130 x 1000 = 130,000
+Calculation time: 0.07 seconds
+Absolute Distance (Lower is better/more similar):
+  Mean:   27.73
+  Median: 23.00
+  Mode:   15.00
+  Std:    18.76
+  Min:    0.00
+  Max:    99.00
+  Skew:   1.263
+Normalised Distance:
+  Mean:   0.6041
+  Median: 0.6098
+  Mode:   0.6000
+  Std:    0.1721
+  Min:    0.0000
+  Max:    1.0000
+  Skew:   -0.196
+Normal Fit (Absolute):    μ = 27.73, σ = 18.76
+Normal Fit (Normalised):  μ = 0.6041, σ = 0.1721
+
+=== Needleman-Wunsch Summary (simulated chains vs training episodes, in-sample) ===
+=== Method: (25x5_fixed) ===
+Observed chains:  130
+Simulated chains: 1000
+Total comparisons: 130 x 1000 = 130,000
+Calculation time: 127.34 seconds
+Absolute Score (Higher is better/more similar):
+  Mean:   -12.38
+  Median: -12.00
+  Mode:   -22.00
+  Std:    10.81
+  Min:    -69.00
+  Max:    21.00
+  Skew:   -0.485
+Normalised Score:
+  Mean:   -0.9713
+  Median: -0.5769
+  Mode:   0.0000
+  Std:    1.2392
+  Min:    -6.5000
+  Max:    0.8077
+  Skew:   -2.101
+Normal Fit (Absolute):    μ = -12.38, σ = 10.81
+Normal Fit (Normalised):  μ = -0.9713, σ = 1.2392
+
+=== Method: (25x5_fitted) ===
+Observed chains:  130
+Simulated chains: 1000
+Total comparisons: 130 x 1000 = 130,000
+Calculation time: 130.41 seconds
+Absolute Score (Higher is better/more similar):
+  Mean:   -16.10
+  Median: -14.00
+  Mode:   -9.00
+  Std:    14.24
+  Min:    -89.00
+  Max:    35.00
+  Skew:   -0.919
+Normalised Score:
+  Mean:   -1.5738
+  Median: -0.8929
+  Mode:   -1.0000
+  Std:    2.1516
+  Min:    -25.3333
+  Max:    0.9091
+  Skew:   -3.361
+Normal Fit (Absolute):    μ = -16.10, σ = 14.24
+Normal Fit (Normalised):  μ = -1.5738, σ = 2.1516
+
+=== Method: (49x7_terminating) ===
+Observed chains:  130
+Simulated chains: 1000
+Total comparisons: 130 x 1000 = 130,000
+Calculation time: 132.23 seconds
+Absolute Score (Higher is better/more similar):
+  Mean:   -17.29
+  Median: -13.00
+  Mode:   -5.00
+  Std:    18.66
+  Min:    -98.00
+  Max:    42.00
+  Skew:   -1.224
+Normalised Score:
+  Mean:   -1.9786
+  Median: -1.0000
+  Mode:   0.0000
+  Std:    2.7807
+  Min:    -24.5000
+  Max:    1.0000
+  Skew:   -2.760
+Normal Fit (Absolute):    μ = -17.29, σ = 18.66
+Normal Fit (Normalised):  μ = -1.9786, σ = 2.7807
+
+=== Smith-Waterman Summary (simulated chains vs training episodes, in-sample) ===
+=== Method: (25x5_fixed) ===
+Observed chains:  130
+Simulated chains: 1000
+Total comparisons: 130 x 1000 = 130,000
+Calculation time: 42.62 seconds
+Absolute Score (Higher is better/more similar):
+  Mean:   15.72
+  Median: 14.00
+  Mode:   2.00
+  Std:    10.02
+  Min:    0.00
+  Max:    52.00
+  Skew:   0.655
+Normalised Score:
+  Mean:   0.3789
+  Median: 0.3654
+  Mode:   0.5000
+  Std:    0.1798
+  Min:    0.0000
+  Max:    1.0000
+  Skew:   0.320
+Normal Fit (Absolute):    μ = 15.72, σ = 10.02
+Normal Fit (Normalised):  μ = 0.3789, σ = 0.1798
+
+=== Method: (25x5_fitted) ===
+Observed chains:  130
+Simulated chains: 1000
+Total comparisons: 130 x 1000 = 130,000
+Calculation time: 43.24 seconds
+Absolute Score (Higher is better/more similar):
+  Mean:   14.61
+  Median: 12.00
+  Mode:   2.00
+  Std:    11.46
+  Min:    0.00
+  Max:    96.00
+  Skew:   1.546
+Normalised Score:
+  Mean:   0.4098
+  Median: 0.3947
+  Mode:   0.5000
+  Std:    0.2122
+  Min:    0.0000
+  Max:    1.0000
+  Skew:   0.417
+Normal Fit (Absolute):    μ = 14.61, σ = 11.46
+Normal Fit (Normalised):  μ = 0.4098, σ = 0.2122
+
+=== Method: (49x7_terminating) ===
+Observed chains:  130
+Simulated chains: 1000
+Total comparisons: 130 x 1000 = 130,000
+Calculation time: 44.06 seconds
+Absolute Score (Higher is better/more similar):
+  Mean:   13.60
+  Median: 9.00
+  Mode:   4.00
+  Std:    12.60
+  Min:    0.00
+  Max:    110.00
+  Skew:   2.255
+Normalised Score:
+  Mean:   0.4327
+  Median: 0.4167
+  Mode:   0.5000
+  Std:    0.1838
+  Min:    0.0000
+  Max:    1.0000
+  Skew:   0.318
+Normal Fit (Absolute):    μ = 13.60, σ = 12.60
+Normal Fit (Normalised):  μ = 0.4327, σ = 0.1838
+
+=== Sensitivity Analysis ===
+=== 25x5 Matrix Sensitivity ===
+Noise Level 0.1%: MAE = 0.0610 ± 0.0078
+Noise Level 0.5%: MAE = 0.0592 ± 0.0080
+Noise Level 1.0%: MAE = 0.0605 ± 0.0067
+Noise Level 2.0%: MAE = 0.0603 ± 0.0070
+Noise Level 5.0%: MAE = 0.0671 ± 0.0100
+25x5 Model sensitivity: LOW
+
+=== 49x7 Matrix Sensitivity ===
+Noise Level 0.1%: MAE = 0.0465 ± 0.0045
+Noise Level 0.5%: MAE = 0.0463 ± 0.0044
+Noise Level 1.0%: MAE = 0.0470 ± 0.0039
+Noise Level 2.0%: MAE = 0.0488 ± 0.0050
+Noise Level 5.0%: MAE = 0.0547 ± 0.0075
+49x7 Model sensitivity: LOW
+
+=== Sensitivity Comparison ===
+Noise Level | 25x5 MAE   | 49x7 MAE   | More Robust
+--------------------------------------------------
+     0.1%   |     0.0610 |     0.0465 | 49x7
+     0.5%   |     0.0592 |     0.0463 | 49x7
+     1.0%   |     0.0605 |     0.0470 | 49x7
+     2.0%   |     0.0603 |     0.0488 | 49x7
+     5.0%   |     0.0671 |     0.0547 | 49x7
+
+Overall Assessment:
+  25x5 matrix: Sensitive (MAE = 0.0671)
+  49x7 matrix: Sensitive (MAE = 0.0547)
+  Conclusion: 49x7 model is more robust (less sensitive to noise)
+
+=== Bootstrap Analysis ===
+Number of samples: 100
+25x5 Matrix Variability:
+  Mean absolute difference from bootstrap mean: 0.0031
+  Average standard deviation across entries: 0.0355
+  Most variable transition: (HygieneArea, NearPatient) → Equipment
+  Max standard deviation: 0.3031
+49x7 Matrix Variability:
+  Mean absolute difference from bootstrap mean: 0.0036
+  Average standard deviation across entries: 0.0251
+  Most variable transition: (NearPatient, Out) → In
+  Max standard deviation: 0.4271
+
+=== Chi-Squared Tests ===
+25x5 Matrix (Observed vs Predicted):
+  Chi-squared statistic: 8875.5467
+  Degrees of freedom: 110
+  P-value: 0.000000
+  Number of cells tested: 111
+  Result: Difference is highly significant (p < 0.001)
+
+49x7 Matrix (Observed vs Predicted):
+  Chi-squared statistic: 7844.6938
+  Degrees of freedom: 163
+  P-value: 0.000000
+  Number of cells tested: 164
+  Result: Difference is highly significant (p < 0.001)
+
+Train vs Test 25x5 Matrix:
+  Chi-squared statistic: 86045.0804
+  Degrees of freedom: 65
+  P-value: 0.000000
+  Number of cells tested: 66
+  Result: Difference is highly significant (p < 0.001)
+
+Train vs Test 25x5 Interpretation: Overfitting likely
+
+=== Missing Events Analysis ===
+
+25x5 Matrix - Transitions that never occurred in training data:
+Total missing: 14 out of 125 possible
+Histories never observed at all: 0 of 25
+  (Equipment, FarPatient) → NearPatient
+  (Patient, NearPatient) → HygieneArea
+  (Patient, FarPatient) → HygieneArea
+  (Patient, HygieneArea) → NearPatient
+  (NearPatient, Patient) → HygieneArea
+  (NearPatient, FarPatient) → Patient
+  (NearPatient, HygieneArea) → NearPatient
+  (NearPatient, HygieneArea) → FarPatient
+  (FarPatient, Patient) → NearPatient
+  (HygieneArea, NearPatient) → NearPatient
+  (HygieneArea, NearPatient) → FarPatient
+  (HygieneArea, NearPatient) → HygieneArea
+  (HygieneArea, FarPatient) → Patient
+  (HygieneArea, HygieneArea) → NearPatient
+
+Categorisation:
+  Probably impossible: 0
+  Rare but possible: 14
+    (Equipment, FarPatient) → NearPatient
+    (Patient, NearPatient) → HygieneArea
+    (Patient, FarPatient) → HygieneArea
+    (Patient, HygieneArea) → NearPatient
+    (NearPatient, Patient) → HygieneArea
+    ... and 9 more
+
+49x7 Matrix - Missing transitions: 162 out of 343
+Histories never observed at all: 7 of 49
+
+=== Do Simulations Predict Missing Events? ===
+Events that were missing in training but predicted by 25x5 simulations: 0
+  None - simulations only predict events that were observed in training
+
+Events that were missing in training but predicted by 49x7 simulations: 0
+  None - simulations only predict events that were observed in training
+
+=== Summary of Hellinger Distances (simulated chains vs training episodes, in-sample) ===
+
+Method: 25x5_fixed
+  Care Period Lengths: 0.8126
+  Equipment: 0.4893
+  Patient: 0.1766
+  NearPatient: 0.1509
+  FarPatient: 0.1680
+  HygieneArea: 0.2797
+  Average Hellinger Distance (Category Visits): 0.2529
+
+Method: 25x5_fitted
+  Care Period Lengths: 0.1270
+  Equipment: 0.2351
+  Patient: 0.1817
+  NearPatient: 0.1564
+  FarPatient: 0.1799
+  HygieneArea: 0.2584
+  Average Hellinger Distance (Category Visits): 0.2023
+
+Method: 49x7_terminating
+  Care Period Lengths: 0.2485
+  In: 0.3276
+  Equipment: 0.1699
+  Patient: 0.1804
+  NearPatient: 0.1717
+  FarPatient: 0.1324
+  HygieneArea: 0.2100
+  Out: 0.1630
+  Average Hellinger Distance (Category Visits): 0.1936
+
+==========================================================================================
+=== Leave-One-Out Cross-Validation (validation on unseen episodes) ===
+==========================================================================================
+Each of the 164 episodes was held out in turn; the model was built from the other
+163 and scored on the held-out episode. Mean and 95% confidence interval over episodes.
+Log-likelihood and accuracy use add-1 smoothing. Only transitions with at least two earlier
+contacts are scored, so first- and second-order are scored on exactly the same transitions.
+Sequence similarity: 100 chains simulated per held-out episode.
+
+Score                                                          |     Mean |              95% CI |    n
+------------------------------------------------------------------------------------------------------
+Log-likelihood per transition (main categories)                |  -1.0872 |  [-1.1546, -1.0197] |  154
+Log-likelihood per transition (all categories)                 |  -1.3116 |  [-1.3793, -1.2440] |  163
+Next-contact accuracy (main categories)                        |   0.6367 |    [0.6010, 0.6724] |  154
+Next-contact accuracy (all categories)                         |   0.5564 |    [0.5232, 0.5897] |  163
+Normalised Levenshtein, fixed (lower is better)                |   0.6312 |    [0.6108, 0.6516] |  164
+Normalised Needleman-Wunsch, fixed                             |  -1.1739 |  [-1.4030, -0.9448] |  164
+Normalised Smith-Waterman, fixed                               |   0.3622 |    [0.3469, 0.3775] |  164
+Normalised Levenshtein, fitted (lower is better)               |   0.6657 |    [0.6491, 0.6822] |  164
+Normalised Needleman-Wunsch, fitted                            |  -1.8774 |  [-2.0829, -1.6718] |  164
+Normalised Smith-Waterman, fitted                              |   0.3991 |    [0.3824, 0.4159] |  164
+Normalised Levenshtein, terminating (lower is better)          |   0.6095 |    [0.6005, 0.6185] |  164
+Normalised Needleman-Wunsch, terminating                       |  -2.0890 |  [-2.3034, -1.8745] |  164
+Normalised Smith-Waterman, terminating                         |   0.4219 |    [0.4114, 0.4324] |  164
+Log-likelihood per transition (main categories), smoothing 0.1 |  -1.1052 |  [-1.1813, -1.0291] |  154
+Log-likelihood per transition (main categories), smoothing 0.5 |  -1.0913 |  [-1.1613, -1.0214] |  154
+Log-likelihood per transition (all categories), smoothing 0.1  |  -1.3463 |  [-1.4325, -1.2601] |  163
+Log-likelihood per transition (all categories), smoothing 0.5  |  -1.3168 |  [-1.3889, -1.2447] |  163
+
+Perplexity (main categories): 2.966
+Perplexity (all categories):  3.712
+(Perplexity = exp(-log-likelihood): the effective number of equally likely next contacts. Lower is better.)
+
+Hellinger distance, held-out episode lengths vs cross-validation simulated chain lengths:
+  fixed: 0.8177
+  fitted: 0.0927
+  terminating: 0.1921
+
+Mean scores by group of the held-out episode:
+                 loglik_main  loglik_all  accuracy_main  accuracy_all
+Source RoomType                                                      
+Actual MB            -0.9956     -1.3368         0.6943        0.5579
+       SB            -0.9167     -1.2199         0.6777        0.5877
+Mock   SB            -1.2772     -1.3517         0.5594        0.5334
+
+Per-episode scores saved to C:\Users\VAdeB\OneDrive\Desktop\code\output\combined\second_order/cross_validation_episodes.csv
+

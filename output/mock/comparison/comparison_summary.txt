@@ -1,6 +1,7 @@
 ======================================================================================================================
 FIRST- vs SECOND-ORDER MARKOV CHAIN COMPARISON
 ======================================================================================================================
+Dataset: mock (49 training episodes)
 Random seed: first-order = 42, second-order = 42
 Matrices: first-order 5x5 / 7x7, second-order 25x5 / 49x7
 
@@ -8,6 +9,37 @@ Data coverage (histories = the states the next state is conditioned on):
   First-order: main 5/5 histories observed, 1/25 transitions missing; all 6/7 histories observed, 19/49 transitions missing
   Second-order: main 24/25 histories observed, 38/125 transitions missing; all 27/49 histories observed, 241/343 transitions missing
 
+VALIDATION ON UNSEEN EPISODES: LEAVE-ONE-OUT CROSS-VALIDATION
+Each episode held out in turn, model built from all the others. Mean [95% CI] over held-out episodes.
+Difference = second-order minus first-order on the same episode (paired). 'Better' is only given when
+the 95% CI of the difference excludes zero. Log-likelihood, accuracy, Needleman-Wunsch and
+Smith-Waterman: higher is better. Levenshtein: lower is better.
+
+Score                                                          |                First-order |               Second-order |       Difference (2nd - 1st) | Wilcoxon p | Better
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Log-likelihood per transition (main categories)                | -1.2630 [-1.3577, -1.1683] | -1.2071 [-1.2821, -1.1321] |   +0.0560 [+0.0045, +0.1074] |      0.021 | Second
+Log-likelihood per transition (all categories)                 | -1.3405 [-1.4183, -1.2628] | -1.2872 [-1.3612, -1.2131] |   +0.0534 [+0.0195, +0.0873] |      0.002 | Second
+Next-contact accuracy (main categories)                        |    0.5243 [0.4723, 0.5763] |    0.5581 [0.5052, 0.6110] |   +0.0338 [+0.0123, +0.0554] |      0.005 | Second
+Next-contact accuracy (all categories)                         |    0.4911 [0.4478, 0.5344] |    0.5576 [0.5134, 0.6019] |   +0.0665 [+0.0431, +0.0899] |    < 0.001 | Second
+Normalised Levenshtein, fixed (lower is better)                |    0.6025 [0.5811, 0.6239] |    0.6164 [0.5950, 0.6377] |   +0.0139 [+0.0095, +0.0182] |    < 0.001 | First
+Normalised Needleman-Wunsch, fixed                             | -0.6859 [-0.8397, -0.5322] | -0.7256 [-0.8781, -0.5731] |   -0.0397 [-0.0522, -0.0271] |    < 0.001 | First
+Normalised Smith-Waterman, fixed                               |    0.3342 [0.3190, 0.3494] |    0.3323 [0.3164, 0.3482] |   -0.0019 [-0.0072, +0.0034] |      0.553 | No clear difference
+Normalised Levenshtein, fitted (lower is better)               |    0.6216 [0.6019, 0.6413] |    0.6372 [0.6175, 0.6569] |   +0.0156 [+0.0103, +0.0210] |    < 0.001 | First
+Normalised Needleman-Wunsch, fitted                            | -0.9888 [-1.1361, -0.8415] | -1.0198 [-1.1614, -0.8782] |   -0.0310 [-0.0632, +0.0013] |      0.035 | No clear difference
+Normalised Smith-Waterman, fitted                              |    0.3595 [0.3443, 0.3747] |    0.3557 [0.3385, 0.3729] |   -0.0038 [-0.0105, +0.0029] |      0.160 | No clear difference
+Normalised Levenshtein, terminating (lower is better)          |    0.5717 [0.5598, 0.5836] |    0.5284 [0.5173, 0.5395] |   -0.0433 [-0.0494, -0.0371] |    < 0.001 | Second
+Normalised Needleman-Wunsch, terminating                       | -1.8707 [-2.0735, -1.6678] | -1.0945 [-1.2243, -0.9646] |   +0.7762 [+0.6676, +0.8848] |    < 0.001 | Second
+Normalised Smith-Waterman, terminating                         |    0.4898 [0.4763, 0.5034] |    0.4465 [0.4319, 0.4610] |   -0.0434 [-0.0501, -0.0367] |    < 0.001 | First
+Log-likelihood per transition (main categories), smoothing 0.1 | -1.2675 [-1.3664, -1.1687] | -1.2382 [-1.3382, -1.1382] |   +0.0293 [-0.0219, +0.0806] |      0.140 | No clear difference
+Log-likelihood per transition (main categories), smoothing 0.5 | -1.2649 [-1.3618, -1.1681] | -1.2111 [-1.2923, -1.1298] |   +0.0539 [+0.0029, +0.1048] |      0.026 | Second
+Log-likelihood per transition (all categories), smoothing 0.1  | -1.3390 [-1.4199, -1.2581] | -1.2843 [-1.3821, -1.1866] |   +0.0547 [+0.0128, +0.0966] |      0.003 | Second
+Log-likelihood per transition (all categories), smoothing 0.5  | -1.3386 [-1.4179, -1.2593] | -1.2750 [-1.3549, -1.1950] |   +0.0636 [+0.0288, +0.0985] |    < 0.001 | Second
+
+Perplexity (main / all categories): first-order 3.536 / 3.821, second-order 3.344 / 3.622 (lower is better)
+
+======================================================================================================================
+IN-SAMPLE CHECKS: simulated chains vs the training data they were generated from
+(these show whether each model reproduces its training data; they are not a validation)
 Method             | Metric                                             |  First-order | Second-order | Better
 ----------------------------------------------------------------------------------------------------------------------
 Fixed length       | MAE observed vs predicted matrix                   |       0.0058 |       0.0107 | First
@@ -64,4 +96,4 @@ Convergence:
 Notes:
   - MAE is only comparable in direction, not size: the second-order matrices have more rows, and
     each row is estimated from fewer transitions.
-  - 'Better' is a simple comparison of the two numbers, not a significance test.
+  - In the in-sample table, 'Better' is a simple comparison of the two numbers, not a significance test.

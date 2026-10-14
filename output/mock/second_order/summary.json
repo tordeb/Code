@@ -1,0 +1,204 @@
+{
+  "order": 2,
+  "dataset": "mock",
+  "seed": 42,
+  "n_train": 49,
+  "main_label": "25x5",
+  "all_label": "49x7",
+  "observed_histories_main": 24,
+  "possible_histories_main": 25,
+  "observed_histories_all": 27,
+  "possible_histories_all": 49,
+  "train_test_mae_main": 0.18788630597528722,
+  "train_test_mae_all": 0.13060552403380674,
+  "train_test_chi2_p_main": 0.0,
+  "chi2_p_main": 0.0,
+  "chi2_p_all": 0.0,
+  "sensitivity_mae_5pct_main": 0.05315939997661448,
+  "sensitivity_mae_5pct_all": 0.040699091042489935,
+  "bootstrap_avg_std_main": 0.04920299300700388,
+  "bootstrap_avg_std_all": 0.019475328353306093,
+  "missing_main": 38,
+  "possible_main": 125,
+  "missing_all": 241,
+  "possible_all": 343,
+  "convergence_main": "HygieneArea \u2192 Equipment \u2192 Patient: INSUFFICIENT DATA (observed 2 times)",
+  "convergence_all": "In \u2192 FarPatient \u2192 Equipment: UNSTABLE (rel. CI width = 1.16, drift = 3%)",
+  "capped_terminating_chains": 3,
+  "cv": {
+    "loglik_main": {
+      "mean": -1.2070887779129467,
+      "ci_low": -1.2820577528324801,
+      "ci_high": -1.1321198029934132,
+      "n": 61
+    },
+    "loglik_all": {
+      "mean": -1.2871514628911198,
+      "ci_low": -1.361161972019847,
+      "ci_high": -1.2131409537623927,
+      "n": 62
+    },
+    "accuracy_main": {
+      "mean": 0.5581048671692458,
+      "ci_low": 0.505202055713795,
+      "ci_high": 0.6110076786246966,
+      "n": 61
+    },
+    "accuracy_all": {
+      "mean": 0.5576134764061428,
+      "ci_low": 0.5133647870848704,
+      "ci_high": 0.6018621657274151,
+      "n": 62
+    },
+    "lev_norm_fixed": {
+      "mean": 0.6163659528199359,
+      "ci_low": 0.5949963253591095,
+      "ci_high": 0.6377355802807623,
+      "n": 62
+    },
+    "nw_norm_fixed": {
+      "mean": -0.7256128156052255,
+      "ci_low": -0.8781061714521508,
+      "ci_high": -0.5731194597583003,
+      "n": 62
+    },
+    "sw_norm_fixed": {
+      "mean": 0.33230718117008434,
+      "ci_low": 0.3164055050027704,
+      "ci_high": 0.34820885733739826,
+      "n": 62
+    },
+    "lev_norm_fitted": {
+      "mean": 0.6371931373436193,
+      "ci_low": 0.617466935131546,
+      "ci_high": 0.6569193395556925,
+      "n": 62
+    },
+    "nw_norm_fitted": {
+      "mean": -1.0197767451370194,
+      "ci_low": -1.1613946042134038,
+      "ci_high": -0.878158886060635,
+      "n": 62
+    },
+    "sw_norm_fitted": {
+      "mean": 0.3556986477832844,
+      "ci_low": 0.338464537868606,
+      "ci_high": 0.37293275769796286,
+      "n": 62
+    },
+    "lev_norm_terminating": {
+      "mean": 0.5283952191952311,
+      "ci_low": 0.5172751020062822,
+      "ci_high": 0.53951533638418,
+      "n": 62
+    },
+    "nw_norm_terminating": {
+      "mean": -1.0944543265404412,
+      "ci_low": -1.2242929323286345,
+      "ci_high": -0.9646157207522478,
+      "n": 62
+    },
+    "sw_norm_terminating": {
+      "mean": 0.4464536810498995,
+      "ci_low": 0.4319466321310107,
+      "ci_high": 0.46096072996878834,
+      "n": 62
+    },
+    "loglik_main_smoothing_0.1": {
+      "mean": -1.2381866466237486,
+      "ci_low": -1.3382002650654239,
+      "ci_high": -1.1381730281820732,
+      "n": 61
+    },
+    "loglik_main_smoothing_0.5": {
+      "mean": -1.2110824551793045,
+      "ci_low": -1.2923176057397359,
+      "ci_high": -1.129847304618873,
+      "n": 61
+    },
+    "loglik_all_smoothing_0.1": {
+      "mean": -1.2843424856356482,
+      "ci_low": -1.3821277114081327,
+      "ci_high": -1.1865572598631637,
+      "n": 62
+    },
+    "loglik_all_smoothing_0.5": {
+      "mean": -1.2749648916171272,
+      "ci_low": -1.3548950527499133,
+      "ci_high": -1.1950347304843412,
+      "n": 62
+    }
+  },
+  "cv_descriptions": {
+    "loglik_main": "Log-likelihood per transition (main categories)",
+    "loglik_all": "Log-likelihood per transition (all categories)",
+    "accuracy_main": "Next-contact accuracy (main categories)",
+    "accuracy_all": "Next-contact accuracy (all categories)",
+    "lev_norm_fixed": "Normalised Levenshtein, fixed (lower is better)",
+    "nw_norm_fixed": "Normalised Needleman-Wunsch, fixed",
+    "sw_norm_fixed": "Normalised Smith-Waterman, fixed",
+    "lev_norm_fitted": "Normalised Levenshtein, fitted (lower is better)",
+    "nw_norm_fitted": "Normalised Needleman-Wunsch, fitted",
+    "sw_norm_fitted": "Normalised Smith-Waterman, fitted",
+    "lev_norm_terminating": "Normalised Levenshtein, terminating (lower is better)",
+    "nw_norm_terminating": "Normalised Needleman-Wunsch, terminating",
+    "sw_norm_terminating": "Normalised Smith-Waterman, terminating",
+    "loglik_main_smoothing_0.1": "Log-likelihood per transition (main categories), smoothing 0.1",
+    "loglik_main_smoothing_0.5": "Log-likelihood per transition (main categories), smoothing 0.5",
+    "loglik_all_smoothing_0.1": "Log-likelihood per transition (all categories), smoothing 0.1",
+    "loglik_all_smoothing_0.5": "Log-likelihood per transition (all categories), smoothing 0.5"
+  },
+  "cv_perplexity": {
+    "main": 3.3437361109298482,
+    "all": 3.6224531529679953
+  },
+  "cv_hellinger_lengths": {
+    "fixed": 0.8280181022562476,
+    "fitted": 0.1842573588861153,
+    "terminating": 0.3338445011093466
+  },
+  "methods": {
+    "fixed": {
+      "name": "25x5_fixed",
+      "mae": 0.010734138695556315,
+      "avg_chain_length": 19.0,
+      "fallback_steps": 0,
+      "hellinger_lengths": 0.7719708428296471,
+      "hellinger_visits": 0.3236632341884194,
+      "levenshtein_mean": 16.375326530612245,
+      "levenshtein_norm_mean": 0.6126988670966983,
+      "nw_mean": -9.299959183673469,
+      "nw_norm_mean": -0.7141293549630625,
+      "sw_mean": 10.469877551020408,
+      "sw_norm_mean": 0.33439695774330375
+    },
+    "fitted": {
+      "name": "25x5_fitted",
+      "mae": 0.011428100983438877,
+      "avg_chain_length": 18.987,
+      "fallback_steps": 0,
+      "hellinger_lengths": 0.18093516571113577,
+      "hellinger_visits": 0.3286989397336827,
+      "levenshtein_mean": 17.723163265306123,
+      "levenshtein_norm_mean": 0.6339018997786834,
+      "nw_mean": -10.83626530612245,
+      "nw_norm_mean": -1.0159468683355095,
+      "sw_mean": 10.060551020408163,
+      "sw_norm_mean": 0.36205561440709483
+    },
+    "terminating": {
+      "name": "49x7_terminating",
+      "mae": 0.007438570592921844,
+      "avg_chain_length": 20.103,
+      "fallback_steps": 0,
+      "hellinger_lengths": 0.33705457346840684,
+      "hellinger_visits": 0.2141837316481447,
+      "levenshtein_mean": 18.36285714285714,
+      "levenshtein_norm_mean": 0.5313901876508591,
+      "nw_mean": -9.545387755102041,
+      "nw_norm_mean": -1.1118855729874315,
+      "sw_mean": 10.282877551020409,
+      "sw_norm_mean": 0.4484502486826511
+    }
+  }
+}

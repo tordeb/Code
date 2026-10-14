@@ -1,0 +1,42 @@
+method,metric,first_order,second_order,better
+Fixed length,MAE observed vs predicted matrix,0.003649408610173186,0.01940346531406233,First
+Fixed length,Hellinger distance: care period lengths,0.8125988492218169,0.8125988492218169,-
+Fixed length,Hellinger distance: category contacts (average),0.27435604375489003,0.25291182687346,Second
+Fixed length,Levenshtein distance (mean),22.683015384615384,22.921407692307692,First
+Fixed length,"Levenshtein distance, normalised (mean)",0.590329298948378,0.6029387511691843,First
+Fixed length,Needleman-Wunsch score (mean),-11.850492307692308,-12.382438461538461,First
+Fixed length,"Needleman-Wunsch score, normalised (mean)",-0.9367955453479373,-0.9713040629691825,First
+Fixed length,Smith-Waterman score (mean),15.827223076923078,15.717938461538461,First
+Fixed length,"Smith-Waterman score, normalised (mean)",0.3847888778410655,0.3788630387052137,First
+Fixed length,Average simulated chain length,26.0,26.0,-
+Fixed length,Steps from unseen histories (random fallback),0,0,-
+Fitted length,MAE observed vs predicted matrix,0.0039016455656952858,0.013144413142907952,First
+Fitted length,Hellinger distance: care period lengths,0.11891073828929855,0.1269521981452762,First
+Fitted length,Hellinger distance: category contacts (average),0.20503945564395648,0.20228598453881236,Second
+Fitted length,Levenshtein distance (mean),25.753792307692308,26.017976923076922,First
+Fitted length,"Levenshtein distance, normalised (mean)",0.6275354505856346,0.6399576202170639,First
+Fitted length,Needleman-Wunsch score (mean),-15.538123076923076,-16.101776923076923,First
+Fitted length,"Needleman-Wunsch score, normalised (mean)",-1.5723974778692327,-1.5737914476807138,First
+Fitted length,Smith-Waterman score (mean),14.724984615384615,14.611692307692307,First
+Fitted length,"Smith-Waterman score, normalised (mean)",0.41667037541417723,0.40979849956881576,First
+Fitted length,Average simulated chain length,26.47,26.478,-
+Fitted length,Steps from unseen histories (random fallback),0,0,-
+Terminating state,MAE observed vs predicted matrix,0.024784952820168998,0.04141521664643318,First
+Terminating state,Hellinger distance: care period lengths,0.24323084643967013,0.24853050354564019,First
+Terminating state,Hellinger distance: category contacts (average),0.21654340745988596,0.19357815607537468,Second
+Terminating state,Levenshtein distance (mean),27.25093846153846,27.728646153846153,First
+Terminating state,"Levenshtein distance, normalised (mean)",0.6109345974572749,0.6041483251859237,Second
+Terminating state,Needleman-Wunsch score (mean),-17.018146153846153,-17.288323076923078,First
+Terminating state,"Needleman-Wunsch score, normalised (mean)",-2.304623526227307,-1.9786156130916166,Second
+Terminating state,Smith-Waterman score (mean),13.321346153846154,13.5961,Second
+Terminating state,"Smith-Waterman score, normalised (mean)",0.4445682717493459,0.43269615274654943,First
+Terminating state,Average simulated chain length,25.894,26.837,-
+Terminating state,Steps from unseen histories (random fallback),0,0,-
+Model,Train vs test MAE (main categories),0.05565766414817289,0.1565160485860845,First
+Model,Train vs test MAE (all categories),0.060905730877549656,0.1357780535469351,First
+Model,Train vs test chi-squared p-value (main),0.0,0.0,-
+Model,Perturbation MAE at 5% noise (main),0.03056583048445134,0.06714578470023673,First
+Model,Perturbation MAE at 5% noise (all),0.02869789768115713,0.054675254220604194,First
+Model,Bootstrap average std (main),0.010940040112509732,0.0355091459037811,First
+Model,Bootstrap average std (all),0.010380570128991297,0.0251062842796638,First
+Model,Terminating chains that hit the maximum length,20,25,First

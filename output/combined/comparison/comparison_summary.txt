@@ -1,0 +1,99 @@
+======================================================================================================================
+FIRST- vs SECOND-ORDER MARKOV CHAIN COMPARISON
+======================================================================================================================
+Dataset: combined (130 training episodes)
+Random seed: first-order = 42, second-order = 42
+Matrices: first-order 5x5 / 7x7, second-order 25x5 / 49x7
+
+Data coverage (histories = the states the next state is conditioned on):
+  First-order: main 5/5 histories observed, 0/25 transitions missing; all 7/7 histories observed, 7/49 transitions missing
+  Second-order: main 25/25 histories observed, 14/125 transitions missing; all 42/49 histories observed, 162/343 transitions missing
+
+VALIDATION ON UNSEEN EPISODES: LEAVE-ONE-OUT CROSS-VALIDATION
+Each episode held out in turn, model built from all the others. Mean [95% CI] over held-out episodes.
+Difference = second-order minus first-order on the same episode (paired). 'Better' is only given when
+the 95% CI of the difference excludes zero. Log-likelihood, accuracy, Needleman-Wunsch and
+Smith-Waterman: higher is better. Levenshtein: lower is better.
+
+Score                                                          |                First-order |               Second-order |       Difference (2nd - 1st) | Wilcoxon p | Better
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Log-likelihood per transition (main categories)                | -1.1227 [-1.1953, -1.0501] | -1.0872 [-1.1546, -1.0197] |   +0.0356 [+0.0076, +0.0635] |    < 0.001 | Second
+Log-likelihood per transition (all categories)                 | -1.3573 [-1.4283, -1.2863] | -1.3116 [-1.3793, -1.2440] |   +0.0456 [+0.0216, +0.0697] |    < 0.001 | Second
+Next-contact accuracy (main categories)                        |    0.5923 [0.5512, 0.6334] |    0.6367 [0.6010, 0.6724] |   +0.0444 [+0.0139, +0.0749] |      0.094 | Second
+Next-contact accuracy (all categories)                         |    0.5198 [0.4849, 0.5547] |    0.5564 [0.5232, 0.5897] |   +0.0366 [+0.0130, +0.0603] |      0.010 | Second
+Normalised Levenshtein, fixed (lower is better)                |    0.6148 [0.5934, 0.6362] |    0.6312 [0.6108, 0.6516] |   +0.0164 [+0.0142, +0.0186] |    < 0.001 | First
+Normalised Needleman-Wunsch, fixed                             | -1.1308 [-1.3611, -0.9005] | -1.1739 [-1.4030, -0.9448] |   -0.0431 [-0.0492, -0.0370] |    < 0.001 | First
+Normalised Smith-Waterman, fixed                               |    0.3715 [0.3555, 0.3875] |    0.3622 [0.3469, 0.3775] |   -0.0093 [-0.0121, -0.0065] |    < 0.001 | First
+Normalised Levenshtein, fitted (lower is better)               |    0.6536 [0.6365, 0.6707] |    0.6657 [0.6491, 0.6822] |   +0.0120 [+0.0091, +0.0150] |    < 0.001 | First
+Normalised Needleman-Wunsch, fitted                            | -1.9224 [-2.1321, -1.7126] | -1.8774 [-2.0829, -1.6718] |   +0.0450 [+0.0033, +0.0868] |      0.062 | Second
+Normalised Smith-Waterman, fitted                              |    0.4078 [0.3909, 0.4246] |    0.3991 [0.3824, 0.4159] |   -0.0086 [-0.0125, -0.0048] |    < 0.001 | First
+Normalised Levenshtein, terminating (lower is better)          |    0.6202 [0.6113, 0.6291] |    0.6095 [0.6005, 0.6185] |   -0.0107 [-0.0142, -0.0072] |    < 0.001 | Second
+Normalised Needleman-Wunsch, terminating                       | -2.4818 [-2.6956, -2.2681] | -2.0890 [-2.3034, -1.8745] |   +0.3928 [+0.2952, +0.4905] |    < 0.001 | Second
+Normalised Smith-Waterman, terminating                         |    0.4397 [0.4282, 0.4512] |    0.4219 [0.4114, 0.4324] |   -0.0178 [-0.0219, -0.0137] |    < 0.001 | First
+Log-likelihood per transition (main categories), smoothing 0.1 | -1.1238 [-1.1972, -1.0504] | -1.1052 [-1.1813, -1.0291] |   +0.0186 [-0.0118, +0.0490] |      0.011 | No clear difference
+Log-likelihood per transition (main categories), smoothing 0.5 | -1.1233 [-1.1963, -1.0503] | -1.0913 [-1.1613, -1.0214] |   +0.0319 [+0.0038, +0.0601] |    < 0.001 | Second
+Log-likelihood per transition (all categories), smoothing 0.1  | -1.3580 [-1.4299, -1.2860] | -1.3463 [-1.4325, -1.2601] |   +0.0117 [-0.0246, +0.0479] |    < 0.001 | No clear difference
+Log-likelihood per transition (all categories), smoothing 0.5  | -1.3576 [-1.4291, -1.2861] | -1.3168 [-1.3889, -1.2447] |   +0.0408 [+0.0153, +0.0663] |    < 0.001 | Second
+
+Perplexity (main / all categories): first-order 3.073 / 3.886, second-order 2.966 / 3.712 (lower is better)
+
+======================================================================================================================
+IN-SAMPLE CHECKS: simulated chains vs the training data they were generated from
+(these show whether each model reproduces its training data; they are not a validation)
+Method             | Metric                                             |  First-order | Second-order | Better
+----------------------------------------------------------------------------------------------------------------------
+Fixed length       | MAE observed vs predicted matrix                   |       0.0036 |       0.0194 | First
+Fixed length       | Hellinger distance: care period lengths            |       0.8126 |       0.8126 | -
+Fixed length       | Hellinger distance: category contacts (average)    |       0.2744 |       0.2529 | Second
+Fixed length       | Levenshtein distance (mean)                        |      22.6830 |      22.9214 | First
+Fixed length       | Levenshtein distance, normalised (mean)            |       0.5903 |       0.6029 | First
+Fixed length       | Needleman-Wunsch score (mean)                      |     -11.8505 |     -12.3824 | First
+Fixed length       | Needleman-Wunsch score, normalised (mean)          |      -0.9368 |      -0.9713 | First
+Fixed length       | Smith-Waterman score (mean)                        |      15.8272 |      15.7179 | First
+Fixed length       | Smith-Waterman score, normalised (mean)            |       0.3848 |       0.3789 | First
+Fixed length       | Average simulated chain length                     |      26.0000 |      26.0000 | -
+Fixed length       | Steps from unseen histories (random fallback)      |            0 |            0 | -
+----------------------------------------------------------------------------------------------------------------------
+Fitted length      | MAE observed vs predicted matrix                   |       0.0039 |       0.0131 | First
+Fitted length      | Hellinger distance: care period lengths            |       0.1189 |       0.1270 | First
+Fitted length      | Hellinger distance: category contacts (average)    |       0.2050 |       0.2023 | Second
+Fitted length      | Levenshtein distance (mean)                        |      25.7538 |      26.0180 | First
+Fitted length      | Levenshtein distance, normalised (mean)            |       0.6275 |       0.6400 | First
+Fitted length      | Needleman-Wunsch score (mean)                      |     -15.5381 |     -16.1018 | First
+Fitted length      | Needleman-Wunsch score, normalised (mean)          |      -1.5724 |      -1.5738 | First
+Fitted length      | Smith-Waterman score (mean)                        |      14.7250 |      14.6117 | First
+Fitted length      | Smith-Waterman score, normalised (mean)            |       0.4167 |       0.4098 | First
+Fitted length      | Average simulated chain length                     |      26.4700 |      26.4780 | -
+Fitted length      | Steps from unseen histories (random fallback)      |            0 |            0 | -
+----------------------------------------------------------------------------------------------------------------------
+Terminating state  | MAE observed vs predicted matrix                   |       0.0248 |       0.0414 | First
+Terminating state  | Hellinger distance: care period lengths            |       0.2432 |       0.2485 | First
+Terminating state  | Hellinger distance: category contacts (average)    |       0.2165 |       0.1936 | Second
+Terminating state  | Levenshtein distance (mean)                        |      27.2509 |      27.7286 | First
+Terminating state  | Levenshtein distance, normalised (mean)            |       0.6109 |       0.6041 | Second
+Terminating state  | Needleman-Wunsch score (mean)                      |     -17.0181 |     -17.2883 | First
+Terminating state  | Needleman-Wunsch score, normalised (mean)          |      -2.3046 |      -1.9786 | Second
+Terminating state  | Smith-Waterman score (mean)                        |      13.3213 |      13.5961 | Second
+Terminating state  | Smith-Waterman score, normalised (mean)            |       0.4446 |       0.4327 | First
+Terminating state  | Average simulated chain length                     |      25.8940 |      26.8370 | -
+Terminating state  | Steps from unseen histories (random fallback)      |            0 |            0 | -
+----------------------------------------------------------------------------------------------------------------------
+Model              | Train vs test MAE (main categories)                |       0.0557 |       0.1565 | First
+Model              | Train vs test MAE (all categories)                 |       0.0609 |       0.1358 | First
+Model              | Train vs test chi-squared p-value (main)           |       0.0000 |       0.0000 | -
+Model              | Perturbation MAE at 5% noise (main)                |       0.0306 |       0.0671 | First
+Model              | Perturbation MAE at 5% noise (all)                 |       0.0287 |       0.0547 | First
+Model              | Bootstrap average std (main)                       |       0.0109 |       0.0355 | First
+Model              | Bootstrap average std (all)                        |       0.0104 |       0.0251 | First
+Model              | Terminating chains that hit the maximum length     |           20 |           25 | First
+
+Convergence:
+  First-order  main: Equipment → Patient: STABLE (rel. CI width = 0.27, drift = 2%)
+  First-order  all:  In → Equipment: STABLE (rel. CI width = 0.49, drift = 1%)
+  Second-order main: HygieneArea → Equipment → Patient: UNSTABLE (rel. CI width = 1.18, drift = 11%)
+  Second-order all:  In → FarPatient → Equipment: MODERATE (rel. CI width = 0.88, drift = 1%)
+
+Notes:
+  - MAE is only comparable in direction, not size: the second-order matrices have more rows, and
+    each row is estimated from fewer transitions.
+  - In the in-sample table, 'Better' is a simple comparison of the two numbers, not a significance test.

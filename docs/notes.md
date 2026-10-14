@@ -11,7 +11,7 @@ The **history** is the state(s) the next state depends on: one state for first-o
 
 # File Structure
 
-There are 11 files in `src/`. Run everything through Docker to save installing the Python packages locally (`dockerfile`, `requirements.txt`).
+There are 12 files in `src/`. Run everything through Docker to save installing the Python packages locally (`dockerfile`, `requirements.txt`).
 
 1. The Data: `data/MockVsActual_GithubDOI.csv` (from [MockVsActualHospitalCare](https://github.com/MarcoFelipeKing/MockVsActualHospitalCare))
    - 164 care periods, with each surface contact by the HCW recorded:
@@ -74,6 +74,9 @@ There are 11 files in `src/`. Run everything through Docker to save installing t
 
 11. Distances: `distances.py`
    - The Hellinger distance function, shared by `metrics.py` and `dataset_comparison.py`.
+
+12. Cross-Validation: `cross_validation.py`
+   - Leave-one-out cross-validation: the main validation of each model on care episodes it was not trained on.
 
 `data_exploration.py` is a separate script for looking at the raw data. It is not included in the analysis.
 
@@ -266,7 +269,7 @@ A first-order chain needs one starting state. A second-order chain needs a start
 
    For each care period it takes the first state (first-order) or the first two states (second-order). It only keeps them if they are all in the category list. For example, for the main-category matrices, starts that include "In" are filtered out. The counts are then converted to probabilities.
 
-   Note: most care periods start with "In", so the main-category starting probabilities come only from the few periods that don't. In the current data this means every main-category simulation starts in HygieneArea.
+   Note: most care periods start with "In", so the main-category starting probabilities come only from the periods that don't. With the mock data alone this means every main-category simulation starts in HygieneArea. With the combined data (where fewer actual episodes start with "In") the first-order starting probabilities are HygieneArea 59%, Equipment 27% and FarPatient 14%.
 
 # MAE with Proper Alignment
 
@@ -317,7 +320,7 @@ A first-order chain needs one starting state. A second-order chain needs a start
 
    - `wilson_ci`: 95% confidence interval for the final estimate (Wilson method),
    - `assess_stability`: labels the estimate as STABLE, MODERATE, UNSTABLE or INSUFFICIENT DATA (fewer than 5 occurrences). It uses the width of the confidence interval compared with the estimate, and how much the estimate changed in the last step,
-   - `estimate_minimum_episodes`: the first number of episodes at which the estimate became STABLE.
+   - `estimate_minimum_episodes`: the number of episodes from which the estimate stays STABLE at every later step, up to and including the final estimate. If the final estimate is not STABLE, the minimum is "not reached" and the data is not sufficient, even if the estimate was briefly STABLE earlier.
 
 
 ---
@@ -401,6 +404,8 @@ After the simulations, the MAE (`calculate_mae_safe`) compares each predicted ma
 # 6. Comparison Metrics
 
 This file compares the observed data with the predictions from all three simulation methods. Every metric is applied in exactly the same way for both orders.
+
+**These metrics are in-sample checks, not a validation.** The simulated chains are generated from a matrix estimated from the training episodes, and are then compared with those same training episodes. The observed-vs-predicted MAE, for example, shrinks towards 0 as more chains are simulated, however well or badly the model describes real care. These metrics show whether the simulations reproduce the training data. The validation of the model on unseen episodes is the leave-one-out cross-validation (section 11).
 
    ## Mean Absolute Error
 
@@ -572,10 +577,14 @@ With `--order both`, it runs order 1, then order 2, each in its own process, and
 
 # 9. Comparison
 
-`compare.py` reads both `summary.json` files and creates:
-- `comparison_summary.txt`: every key metric for first- and second-order side by side, grouped by simulation method, with a column showing which did better,
-- `comparison_summary.csv`: the same table, for making tables in the paper,
-- `comparison_metrics.png`: bar charts of MAE, Hellinger distances and the normalised sequence-similarity scores.
+`compare.py` reads both `summary.json` files and both `cross_validation_episodes.csv` files and creates:
+- `comparison_summary.txt`: first the leave-one-out cross-validation results, then every in-sample metric for first- and second-order side by side, grouped by simulation method,
+- `comparison_cross_validation.csv`: the cross-validation results (each order's mean and 95% CI, and the paired difference with its 95% CI and Wilcoxon p-value), for tables in the paper,
+- `comparison_cross_validation.png`: the paired differences with their 95% CIs, drawn so that a point to the right of zero means second-order did better,
+- `comparison_summary.csv`: the in-sample table,
+- `comparison_metrics.png`: bar charts of the in-sample MAE, Hellinger distances and normalised sequence-similarity scores.
+
+For the cross-validation, both orders are scored on the same held-out episodes, so the comparison is **paired**: for each episode, the second-order score minus the first-order score. The table gives the mean of these differences, a 95% confidence interval, and a Wilcoxon signed-rank test (a paired test that does not assume the differences are normally distributed). One order is only called "better" when the 95% CI of the difference excludes zero.
 
 It also lists data coverage: how many of the possible histories were observed, and how many transitions never occurred, for each model.
 
@@ -614,3 +623,43 @@ It works on whole episodes (not the train/test split) and uses first-order trans
    - `data_comparison_summary.txt`: every statistic for all three comparisons,
    - `data_comparison_summary.csv`: the key numbers in one table,
    - one folder per comparison with `care_period_lengths.png`, `category_shares.png` and `transition_matrices.png` (both groups' matrices and their difference).
+
+
+---
+
+# 11. Leave-One-Out Cross-Validation
+
+`cross_validation.py` is the main validation of each model: how well does it predict care episodes it has **not** been trained on?
+
+   ## How it works
+
+   For every care episode in the dataset:
+   1. Hold the episode out,
+   2. Build the model from all the other episodes,
+   3. Score how well the model predicts the held-out episode.
+
+   This is repeated until every episode has been held out once (62 times for the mock data, 164 for the combined data). That gives one score per episode, which is reported as a mean with a 95% confidence interval (t-distribution). It uses every episode, not only the 80/20 split, so it makes the most of a small dataset.
+
+   ## Scores
+
+   - **Log-likelihood per transition:** the average of log(probability the model gave the next contact that actually happened). It is always negative; closer to 0 is better.
+   - **Perplexity:** exp(-log-likelihood). The effective number of equally likely next contacts the model is choosing between, so lower is better. It is the same information as the log-likelihood, but easier to explain.
+   - **Next-contact accuracy:** how often the model's most likely next contact is the one that actually happened. If several contacts are equally likely, the credit is shared between them.
+   - **Sequence similarity:** 100 chains are simulated from the model of each fold (for each of the three simulation methods) and compared with the held-out episode using normalised Levenshtein distance, Needleman-Wunsch and Smith-Waterman (the same scoring as `metrics.py`). The Hellinger distance between the held-out episode lengths and the simulated chain lengths (pooled over all folds) is also reported.
+
+   ## Smoothing
+
+   If a held-out episode contains a transition that never occurred in the training episodes, an unsmoothed model gives it probability 0, and log(0) is minus infinity. To avoid this, add-one (Laplace) smoothing is used: every transition is counted one extra time before calculating probabilities. A history never seen in training then becomes equally likely to go to any category, which matches what `simulate()` does.
+   Smoothing affects second-order more than first-order, because its rows contain fewer transitions. The log-likelihood is therefore also reported with lighter smoothing (0.1 and 0.5 extra counts), to check that the conclusion does not depend on this choice.
+
+   The sequence-similarity scores use the unsmoothed model, exactly as in the main simulations.
+
+   ## Which transitions are scored
+
+   A second-order model cannot score the first transition of an episode, because there is no previous contact. So that both orders are compared fairly, only transitions with at least two earlier contacts are scored, in **both** orders. For the main categories, the two earlier contacts and the next contact must all be main categories. Both orders are therefore scored on exactly the same transitions of the same episodes.
+
+   ## Outputs
+
+   - `cross_validation_episodes.csv` (in each order's output folder): every score for every held-out episode,
+   - a "Leave-One-Out Cross-Validation" section at the end of `first_order_results.txt` / `second_order_results.txt`, including the mean scores for each group (e.g. mock vs actual) when the dataset contains more than one,
+   - the paired first- vs second-order comparison in `compare.py` (section 9).

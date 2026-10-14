@@ -1,0 +1,211 @@
+DATASET COMPARISON
+Permutation tests: 2000 random reallocations of whole episodes between the two groups (seed 42).
+p-values are not corrected for multiple testing; read them alongside the size of each difference.
+
+====================================================================================================
+MOCK VS ACTUAL (SINGLE-BED ROOMS)
+====================================================================================================
+Mock: 62 episodes    Actual SB: 44 episodes
+
+--- Episode length (contacts) ---
+                        Mock     Actual SB
+Mean                    18.8          32.6
+Median                  17.5          31.5
+Std                      8.5          18.8
+Mann-Whitney U test: p < 0.001
+Hellinger distance between length distributions: 0.500
+
+--- Share of all contacts in each category ---
+Category                Mock     Actual SB
+In                     0.053         0.031
+Equipment              0.312         0.601
+Patient                0.174         0.106
+NearPatient            0.040         0.051
+FarPatient             0.210         0.054
+HygieneArea            0.160         0.126
+Out                    0.051         0.032
+Total variation distance: 0.300 (permutation test p < 0.001)
+
+--- Contacts per episode in each category ---
+Category             Mean Mock  Mean Actual SB    Mann-Whitney   Hellinger
+In                        1.00            1.00 n/a (identical)       0.000
+Equipment                 5.85           19.57       p < 0.001       0.511
+Patient                   3.27            3.45       p = 0.270       0.383
+NearPatient               0.74            1.66       p = 0.081       0.298
+FarPatient                3.95            1.75       p < 0.001       0.566
+HygieneArea               3.00            4.09       p = 0.068       0.260
+Out                       0.95            1.05       p = 0.067       0.192
+
+--- First-order transition matrices ---
+MAE between the two groups' 7x7 matrices: 0.0953 (permutation test p < 0.001)
+MAE between the two groups' 5x5 matrices: 0.0854 (permutation test p < 0.001)
+Mock:
+               In  Equipment  Patient  NearPatient  FarPatient  HygieneArea    Out
+In           0.00      0.016    0.000        0.000       0.984        0.000  0.000
+Equipment    0.00      0.573    0.196        0.039       0.107        0.080  0.006
+Patient      0.00      0.340    0.502        0.034       0.079        0.044  0.000
+NearPatient  0.00      0.326    0.087        0.348       0.130        0.109  0.000
+FarPatient   0.00      0.202    0.091        0.033       0.376        0.066  0.231
+HygieneArea  0.07      0.113    0.022        0.005       0.172        0.613  0.005
+Out          0.00      0.000    0.000        0.000       0.000        0.000  0.000
+Actual SB:
+                In  Equipment  Patient  NearPatient  FarPatient  HygieneArea    Out
+In           0.000      0.636    0.091        0.023       0.114        0.114  0.023
+Equipment    0.009      0.763    0.081        0.024       0.031        0.064  0.027
+Patient      0.000      0.474    0.441        0.046       0.007        0.007  0.026
+NearPatient  0.000      0.247    0.096        0.507       0.096        0.055  0.000
+FarPatient   0.125      0.361    0.014        0.097       0.194        0.069  0.139
+HygieneArea  0.047      0.292    0.018        0.000       0.053        0.544  0.047
+Out          0.000      0.222    0.000        0.000       0.278        0.500  0.000
+
+--- How episodes start and end ---
+                                            Mock     Actual SB    Fisher exact
+Starts with In                             79.0%         43.2%       p < 0.001
+Ends with Out                              95.2%         63.6%       p < 0.001
+Leaves and re-enters (Out mid-way)          0.0%         40.9%       p < 0.001
+
+--- Sequence similarity (mean normalised Levenshtein distance, 0 = identical) ---
+Within Mock: 0.480
+Within Actual SB: 0.582
+Between Mock and Actual SB: 0.627
+If 'between' is close to the 'within' values, episodes from the two groups are about as alike as
+episodes from the same group.
+
+====================================================================================================
+MOCK VS ACTUAL (ALL ROOMS)
+====================================================================================================
+Mock: 62 episodes    Actual: 102 episodes
+
+--- Episode length (contacts) ---
+                        Mock        Actual
+Mean                    18.8          27.3
+Median                  17.5          24.0
+Std                      8.5          18.8
+Mann-Whitney U test: p = 0.016
+Hellinger distance between length distributions: 0.403
+
+--- Share of all contacts in each category ---
+Category                Mock        Actual
+In                     0.053         0.038
+Equipment              0.312         0.565
+Patient                0.174         0.104
+NearPatient            0.040         0.044
+FarPatient             0.210         0.084
+HygieneArea            0.160         0.128
+Out                    0.051         0.038
+Total variation distance: 0.257 (permutation test p < 0.001)
+
+--- Contacts per episode in each category ---
+Category             Mean Mock     Mean Actual    Mann-Whitney   Hellinger
+In                        1.00            1.03       p = 0.177       0.122
+Equipment                 5.85           15.39       p < 0.001       0.406
+Patient                   3.27            2.83       p = 0.008       0.381
+NearPatient               0.74            1.19       p = 0.084       0.202
+FarPatient                3.95            2.29       p < 0.001       0.479
+HygieneArea               3.00            3.49       p = 0.486       0.194
+Out                       0.95            1.03       p = 0.100       0.187
+
+--- First-order transition matrices ---
+MAE between the two groups' 7x7 matrices: 0.0786 (permutation test p < 0.001)
+MAE between the two groups' 5x5 matrices: 0.0652 (permutation test p < 0.001)
+Mock:
+               In  Equipment  Patient  NearPatient  FarPatient  HygieneArea    Out
+In           0.00      0.016    0.000        0.000       0.984        0.000  0.000
+Equipment    0.00      0.573    0.196        0.039       0.107        0.080  0.006
+Patient      0.00      0.340    0.502        0.034       0.079        0.044  0.000
+NearPatient  0.00      0.326    0.087        0.348       0.130        0.109  0.000
+FarPatient   0.00      0.202    0.091        0.033       0.376        0.066  0.231
+HygieneArea  0.07      0.113    0.022        0.005       0.172        0.613  0.005
+Out          0.00      0.000    0.000        0.000       0.000        0.000  0.000
+Actual:
+                In  Equipment  Patient  NearPatient  FarPatient  HygieneArea    Out
+In           0.000      0.429    0.105        0.076       0.267        0.114  0.010
+Equipment    0.012      0.752    0.093        0.024       0.033        0.057  0.030
+Patient      0.000      0.526    0.363        0.042       0.024        0.024  0.021
+NearPatient  0.000      0.273    0.149        0.397       0.107        0.050  0.025
+FarPatient   0.062      0.238    0.022        0.057       0.436        0.048  0.137
+HygieneArea  0.048      0.251    0.015        0.009       0.045        0.582  0.051
+Out          0.054      0.297    0.000        0.000       0.216        0.432  0.000
+
+--- How episodes start and end ---
+                                            Mock        Actual    Fisher exact
+Starts with In                             79.0%         53.9%       p = 0.001
+Ends with Out                              95.2%         66.7%       p < 0.001
+Leaves and re-enters (Out mid-way)          0.0%         36.3%       p < 0.001
+
+--- Sequence similarity (mean normalised Levenshtein distance, 0 = identical) ---
+Within Mock: 0.480
+Within Actual: 0.620
+Between Mock and Actual: 0.608
+If 'between' is close to the 'within' values, episodes from the two groups are about as alike as
+episodes from the same group.
+
+====================================================================================================
+ACTUAL CARE: SINGLE-BED VS MULTI-BED ROOMS
+====================================================================================================
+Actual SB: 44 episodes    Actual MB: 58 episodes
+
+--- Episode length (contacts) ---
+                   Actual SB     Actual MB
+Mean                    32.6          23.2
+Median                  31.5          19.0
+Std                     18.8          18.0
+Mann-Whitney U test: p = 0.008
+Hellinger distance between length distributions: 0.359
+
+--- Share of all contacts in each category ---
+Category           Actual SB     Actual MB
+In                     0.031         0.045
+Equipment              0.601         0.526
+Patient                0.106         0.102
+NearPatient            0.051         0.036
+FarPatient             0.054         0.117
+HygieneArea            0.126         0.131
+Out                    0.032         0.044
+Total variation distance: 0.094 (permutation test p = 0.123)
+
+--- Contacts per episode in each category ---
+Category        Mean Actual SB  Mean Actual MB    Mann-Whitney   Hellinger
+In                        1.00            1.05       p = 0.130       0.162
+Equipment                19.57           12.22       p = 0.008       0.422
+Patient                   3.45            2.36       p = 0.087       0.347
+NearPatient               1.66            0.83       p = 0.456       0.313
+FarPatient                1.75            2.71       p = 0.118       0.315
+HygieneArea               4.09            3.03       p = 0.039       0.331
+Out                       1.05            1.02       p = 0.679       0.055
+
+--- First-order transition matrices ---
+MAE between the two groups' 7x7 matrices: 0.0662 (permutation test p < 0.001)
+MAE between the two groups' 5x5 matrices: 0.0806 (permutation test p < 0.001)
+Actual SB:
+                In  Equipment  Patient  NearPatient  FarPatient  HygieneArea    Out
+In           0.000      0.636    0.091        0.023       0.114        0.114  0.023
+Equipment    0.009      0.763    0.081        0.024       0.031        0.064  0.027
+Patient      0.000      0.474    0.441        0.046       0.007        0.007  0.026
+NearPatient  0.000      0.247    0.096        0.507       0.096        0.055  0.000
+FarPatient   0.125      0.361    0.014        0.097       0.194        0.069  0.139
+HygieneArea  0.047      0.292    0.018        0.000       0.053        0.544  0.047
+Out          0.000      0.222    0.000        0.000       0.278        0.500  0.000
+Actual MB:
+                In  Equipment  Patient  NearPatient  FarPatient  HygieneArea    Out
+In           0.000      0.279    0.115        0.115       0.377        0.115  0.000
+Equipment    0.014      0.739    0.106        0.023       0.035        0.048  0.034
+Patient      0.000      0.584    0.277        0.036       0.044        0.044  0.015
+NearPatient  0.000      0.312    0.229        0.229       0.125        0.042  0.062
+FarPatient   0.032      0.181    0.026        0.039       0.548        0.039  0.135
+HygieneArea  0.049      0.207    0.012        0.018       0.037        0.622  0.055
+Out          0.105      0.368    0.000        0.000       0.158        0.368  0.000
+
+--- How episodes start and end ---
+                                       Actual SB     Actual MB    Fisher exact
+Starts with In                             43.2%         62.1%       p = 0.072
+Ends with Out                              63.6%         69.0%       p = 0.672
+Leaves and re-enters (Out mid-way)         40.9%         32.8%       p = 0.414
+
+--- Sequence similarity (mean normalised Levenshtein distance, 0 = identical) ---
+Within Actual SB: 0.582
+Within Actual MB: 0.625
+Between Actual SB and Actual MB: 0.631
+If 'between' is close to the 'within' values, episodes from the two groups are about as alike as
+episodes from the same group.
+

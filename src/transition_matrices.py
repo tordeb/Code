@@ -365,11 +365,16 @@ def assess_stability(results, max_rel_width=0.5, max_drift=0.10, min_count=5):
 
 # Estimate minimum required episodes
 def estimate_minimum_episodes(results):
-    """First episode count where the estimate becomes STABLE. None if it never does."""
-    for i in range(2, len(results) + 1):
-        if assess_stability(results[:i]).startswith("STABLE"):
-            return results[i - 1]['sample_size']
-    return None
+    """
+    Episode count from which the estimate is STABLE at every later step, up to and including the final estimate.
+    None if the final estimate is not STABLE (an estimate that was briefly stable and then moved does not count).
+    """
+    minimum = None
+    for i in range(len(results), 1, -1):
+        if not assess_stability(results[:i]).startswith("STABLE"):
+            break
+        minimum = results[i - 1]['sample_size']
+    return minimum
 
 
 stability_main = assess_stability(convergence_main)
@@ -377,7 +382,7 @@ stability_all = assess_stability(convergence_all)
 min_episodes_main = estimate_minimum_episodes(convergence_main)
 min_episodes_all = estimate_minimum_episodes(convergence_all)
 
-# Is the data sufficient? Only if it actually became stable
+# Is the data sufficient? Only if the final estimate is stable
 sufficient_main = "YES" if min_episodes_main is not None else "NO"
 sufficient_all = "YES" if min_episodes_all is not None else "NO"
 
