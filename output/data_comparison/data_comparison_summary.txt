@@ -39,6 +39,8 @@ Out                       0.95            1.05       p = 0.067       0.192
 --- First-order transition matrices ---
 MAE between the two groups' 7x7 matrices: 0.0953 (permutation test p < 0.001)
 MAE between the two groups' 5x5 matrices: 0.0854 (permutation test p < 0.001)
+G² homogeneity test, 7x7: G² = 298.9, df = 32, chi-squared p < 0.001, permutation test p < 0.001
+G² homogeneity test, 5x5: G² = 142.5, df = 20, chi-squared p < 0.001, permutation test p < 0.001
 Mock:
                In  Equipment  Patient  NearPatient  FarPatient  HygieneArea    Out
 In           0.00      0.016    0.000        0.000       0.984        0.000  0.000
@@ -108,6 +110,8 @@ Out                       0.95            1.03       p = 0.100       0.187
 --- First-order transition matrices ---
 MAE between the two groups' 7x7 matrices: 0.0786 (permutation test p < 0.001)
 MAE between the two groups' 5x5 matrices: 0.0652 (permutation test p < 0.001)
+G² homogeneity test, 7x7: G² = 307.0, df = 33, chi-squared p < 0.001, permutation test p < 0.001
+G² homogeneity test, 5x5: G² = 144.5, df = 20, chi-squared p < 0.001, permutation test p < 0.001
 Mock:
                In  Equipment  Patient  NearPatient  FarPatient  HygieneArea    Out
 In           0.00      0.016    0.000        0.000       0.984        0.000  0.000
@@ -177,6 +181,8 @@ Out                       1.05            1.02       p = 0.679       0.055
 --- First-order transition matrices ---
 MAE between the two groups' 7x7 matrices: 0.0662 (permutation test p < 0.001)
 MAE between the two groups' 5x5 matrices: 0.0806 (permutation test p < 0.001)
+G² homogeneity test, 7x7: G² = 104.3, df = 36, chi-squared p < 0.001, permutation test p = 0.001
+G² homogeneity test, 5x5: G² = 65.3, df = 20, chi-squared p < 0.001, permutation test p = 0.008
 Actual SB:
                 In  Equipment  Patient  NearPatient  FarPatient  HygieneArea    Out
 In           0.000      0.636    0.091        0.023       0.114        0.114  0.023

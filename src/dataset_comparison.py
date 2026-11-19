@@ -11,11 +11,13 @@
 #   - Episode length (mean, median, Mann-Whitney U test, Hellinger distance)
 #   - Share of contacts in each category (total variation distance, permutation test)
 #   - Contacts per episode in each category (Mann-Whitney U test, Hellinger distance)
-#   - First-order transition matrices (MAE between the two groups' matrices, permutation test)
+#   - First-order transition matrices (MAE between the two groups' matrices, permutation test; G² homogeneity test)
 #   - How episodes start and end (Fisher's exact test)
 #   - Sequence similarity (normalised Levenshtein distance within and between the groups)
 #
 # Permutation tests shuffle whole episodes between the two groups, so contacts from the same episode stay together.
+#
+# The LaTeX tables for the paper's mock vs actual section are written by latex_tables.py (called at the end).
 #
 # Usage: python src/dataset_comparison.py   -> output/data_comparison/
 
@@ -39,6 +41,7 @@ from scipy import stats
 from config import OUTPUT_ROOT, SEED, all_categories, main_categories
 from data_loader import load_data
 from distances import hellinger_distance_histograms
+from latex_tables import write_mock_vs_actual_tables
 
 
 OUTPUT_DIR = os.path.join(OUTPUT_ROOT, "data_comparison")
@@ -96,6 +99,7 @@ def summarise_episodes(data):
             "ends_out": states[-1] == "Out",
             # Left the room and came back during the episode (an "Out" that is not the last contact)
             "re_entry": "Out" in states[:-1],
+            "states": states,
             "string": "".join(letters[state] for state in states),
         })
     return pd.DataFrame(episodes)
@@ -128,6 +132,33 @@ def matrix_mae(counts_a, counts_b, index=None):
     probs_a, probs_b = row_normalise(counts_a), row_normalise(counts_b)
     rows = (counts_a.sum(axis=1) > 0) & (counts_b.sum(axis=1) > 0)
     return np.abs(probs_a[rows] - probs_b[rows]).mean()
+
+
+def g_squared(counts_a, counts_b, index=None):
+    """
+    Likelihood-ratio (G²) test that two groups share one first-order transition matrix (Anderson & Goodman, 1957).
+
+    G² = 2 Σ n_gij ln(n_gij / E_gij), where E_gij = n_gi × (pooled count i -> j / pooled row total i).
+    Each row (current state) is a groups x next-states table. Its degrees of freedom are
+    (groups that left that state - 1) x (next states seen from it - 1); the total df is the sum over rows.
+
+    Returns (G², degrees of freedom).
+    """
+    if index is not None:
+        counts_a = counts_a[np.ix_(index, index)]
+        counts_b = counts_b[np.ix_(index, index)]
+    stacked = np.stack([counts_a, counts_b])
+    pooled = stacked.sum(axis=0)
+    row_totals = stacked.sum(axis=2, keepdims=True)
+    expected = row_totals * row_normalise(pooled)[np.newaxis]
+
+    observed = stacked > 0
+    g2 = 2 * np.sum(stacked[observed] * np.log(stacked[observed] / expected[observed]))
+
+    groups_per_row = (row_totals[:, :, 0] > 0).sum(axis=0)
+    next_states_per_row = (pooled > 0).sum(axis=1)
+    df = int(np.sum(np.clip(groups_per_row - 1, 0, None) * np.clip(next_states_per_row - 1, 0, None)))
+    return g2, df
 
 
 def total_variation(counts_a, counts_b):
@@ -205,9 +236,21 @@ def compare_groups(name_a, episodes_a, name_b, episodes_b, rng):
     mae_all, mae_all_p = permutation_test(transitions_a, transitions_b, matrix_mae, rng)
     mae_main, mae_main_p = permutation_test(
         transitions_a, transitions_b, lambda a, b: matrix_mae(a, b, main_index), rng)
+    # G² homogeneity test. The chi-squared p-value treats every transition as independent; the permutation p-value
+    # (whole episodes shuffled) allows for transitions from the same episode being related.
+    # It has its own random stream, so adding it did not change the other permutation p-values.
+    g2_rng = np.random.default_rng(SEED)
+    g2 = {}
+    for name, index in (("all", None), ("main", main_index)):
+        statistic, df = g_squared(transitions_a.sum(axis=0), transitions_b.sum(axis=0), index)
+        _, permutation_p = permutation_test(
+            transitions_a, transitions_b, lambda a, b: g_squared(a, b, index)[0], g2_rng)
+        g2[name] = {"g2": statistic, "df": df, "chi2_p": stats.chi2.sf(statistic, df),
+                    "permutation_p": permutation_p}
     result["transitions"] = {
         "mae_all": mae_all, "mae_all_p": mae_all_p,
         "mae_main": mae_main, "mae_main_p": mae_main_p,
+        "g2_all": g2["all"], "g2_main": g2["main"],
         "matrix_a": row_normalise(transitions_a.sum(axis=0)),
         "matrix_b": row_normalise(transitions_b.sum(axis=0)),
     }
@@ -340,6 +383,10 @@ def report(key, title, result):
     lines += ["--- First-order transition matrices ---",
               f"MAE between the two groups' 7x7 matrices: {r['mae_all']:.4f} (permutation test {p_text(r['mae_all_p'])})",
               f"MAE between the two groups' 5x5 matrices: {r['mae_main']:.4f} (permutation test {p_text(r['mae_main_p'])})",
+              f"G² homogeneity test, 7x7: G² = {r['g2_all']['g2']:.1f}, df = {r['g2_all']['df']}, "
+              f"chi-squared {p_text(r['g2_all']['chi2_p'])}, permutation test {p_text(r['g2_all']['permutation_p'])}",
+              f"G² homogeneity test, 5x5: G² = {r['g2_main']['g2']:.1f}, df = {r['g2_main']['df']}, "
+              f"chi-squared {p_text(r['g2_main']['chi2_p'])}, permutation test {p_text(r['g2_main']['permutation_p'])}",
               f"{a}:",
               pd.DataFrame(r["matrix_a"], index=all_categories, columns=all_categories).round(3).to_string(),
               f"{b}:",
@@ -377,6 +424,12 @@ def summary_row(key, title, result):
         "transition_mae_7x7_p": result["transitions"]["mae_all_p"],
         "transition_mae_5x5": result["transitions"]["mae_main"],
         "transition_mae_5x5_p": result["transitions"]["mae_main_p"],
+        "g2_7x7": result["transitions"]["g2_all"]["g2"],
+        "g2_7x7_df": result["transitions"]["g2_all"]["df"],
+        "g2_7x7_permutation_p": result["transitions"]["g2_all"]["permutation_p"],
+        "g2_5x5": result["transitions"]["g2_main"]["g2"],
+        "g2_5x5_df": result["transitions"]["g2_main"]["df"],
+        "g2_5x5_permutation_p": result["transitions"]["g2_main"]["permutation_p"],
         "levenshtein_within_a": result["levenshtein"]["within_a"],
         "levenshtein_within_b": result["levenshtein"]["within_b"],
         "levenshtein_between": result["levenshtein"]["between"],
@@ -395,12 +448,14 @@ def main():
         "",
     ]
     rows = []
+    results = {}
     for key, comparison in COMPARISONS.items():
         name_a, condition_a = comparison["a"]
         name_b, condition_b = comparison["b"]
         episodes_a, episodes_b = select(episodes, condition_a), select(episodes, condition_b)
 
         result = compare_groups(name_a, episodes_a, name_b, episodes_b, rng)
+        results[key] = result
         sections.append(report(key, comparison["title"], result))
         rows.append(summary_row(key, comparison["title"], result))
         plot_comparison(key, comparison["title"], result, episodes_a, episodes_b)
@@ -411,6 +466,8 @@ def main():
     pd.DataFrame(rows).to_csv(os.path.join(OUTPUT_DIR, "data_comparison_summary.csv"), index=False)
     print(text)
     print(f"Saved to {OUTPUT_DIR}")
+
+    write_mock_vs_actual_tables(episodes, results)
 
 
 if __name__ == "__main__":

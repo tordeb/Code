@@ -51,12 +51,13 @@ A second-order chain works like a first-order chain whose states are pairs. Ever
   - `main.py`: runs the analysis for one order or for both
   - `compare.py`: puts the first- and second-order results side by side
   - `dataset_comparison.py`: compares mock vs actual care and single- vs multi-bed rooms
+  - `latex_tables.py`: LaTeX tables for the paper's mock vs actual section
   - `distances.py`: Hellinger distance, shared by the metrics and the dataset comparison
   - `data_exploration.py`: a quick look at the raw data (not part of the analysis)
 - `data/`: the dataset (`MockVsActual_GithubDOI.csv`)
 - `output/<dataset>/first_order/`, `output/<dataset>/second_order/`: full results (`.txt`), per-episode cross-validation scores (`.csv`) and figures for each model
 - `output/<dataset>/comparison/`: first- vs second-order comparison tables (`.txt` and `.csv`) and figures
-- `output/data_comparison/`: mock vs actual and single- vs multi-bed comparison
+- `output/data_comparison/`: mock vs actual and single- vs multi-bed comparison, with LaTeX tables in `latex/`
 - `docs/notes.md`: detailed notes on how each part of the code works
 
 ## Running

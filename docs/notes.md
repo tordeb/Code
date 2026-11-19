@@ -604,6 +604,7 @@ It works on whole episodes (not the train/test split) and uses first-order trans
    - Share of all contacts in each category: the total variation distance (half the sum of the differences in share: 0 = identical, 1 = no overlap) with a permutation test,
    - Contacts per episode in each category: means, Mann-Whitney U tests and Hellinger distances,
    - First-order transition matrices: the MAE between the two groups' 7x7 and 5x5 matrices (only rows observed in both groups), with a permutation test,
+   - First-order transition matrices: the G² likelihood-ratio test of homogeneity (Anderson & Goodman, 1957), which asks whether one shared matrix fits both groups. Each current state is a small groups x next-states table; G² = 2 Σ observed × ln(observed / expected), and the degrees of freedom are (groups that left that state - 1) x (next states seen from it - 1), summed over states. Two p-values are given: the usual chi-squared one, which treats every transition as independent, and a permutation one (below), which does not. The permutation test uses its own random stream, so adding it left the other p-values unchanged,
    - How episodes start and end: the share starting with "In", ending with "Out", and leaving and re-entering mid-episode, with Fisher's exact test,
    - Sequence similarity: the mean normalised Levenshtein distance between episodes within each group and between the two groups. If the "between" value is close to the "within" values, episodes from the two groups are about as alike as episodes from the same group.
 
@@ -619,7 +620,8 @@ It works on whole episodes (not the train/test split) and uses first-order trans
    `output/data_comparison/`:
    - `data_comparison_summary.txt`: every statistic for all three comparisons,
    - `data_comparison_summary.csv`: the key numbers in one table,
-   - one folder per comparison with `care_period_lengths.png`, `category_shares.png` and `transition_matrices.png` (both groups' matrices and their difference).
+   - one folder per comparison with `care_period_lengths.png`, `category_shares.png` and `transition_matrices.png` (both groups' matrices and their difference),
+   - `latex/`: ready-to-paste LaTeX tables for the paper's mock vs actual section, written by `latex_tables.py` (needs the `booktabs` and `multirow` packages). They use all episodes, and the 5-category tables drop transitions to or from In and Out, the same way the models build their 5-category data.
 
 
 ---
