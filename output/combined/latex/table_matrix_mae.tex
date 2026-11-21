@@ -1,0 +1,22 @@
+\begin{table}[htbp]
+\centering
+\small
+\caption{Mean absolute error (MAE) between transition probability matrices. Observed vs predicted is in-sample: the matrix estimated from the simulated chains against the training matrix they were simulated from. Predicted vs test and train vs test compare with the matrix of the held-out test episodes.}
+\label{tab:matrix_mae}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lrrrrrr}
+\toprule
+ & \multicolumn{3}{c}{\textbf{First-order}} & \multicolumn{3}{c}{\textbf{Second-order}} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}
+ & \textbf{Fixed} & \textbf{Fitted} & \textbf{Term.} & \textbf{Fixed} & \textbf{Fitted} & \textbf{Term.} \\
+\midrule
+Observed vs predicted & 0.0036 & 0.0039 & 0.0051 & 0.0194 & 0.0131 & 0.0277 \\
+Predicted vs test & 0.0564 & 0.0549 & 0.0504 & 0.1554 & 0.1552 & 0.1312 \\
+Train vs test & \multicolumn{2}{c}{0.0557} & 0.0497 & \multicolumn{2}{c}{0.1565} & 0.1285 \\
+\bottomrule
+\end{tabular*}
+\par\smallskip
+\begin{minipage}{\linewidth}\footnotesize
+Fixed and fitted use the five-category matrices ($5\times5$ and $25\times5$), terminating-state the seven-category matrices ($7\times7$ and $49\times7$), so the train vs test value is shared by fixed and fitted. Only histories observed in the first matrix of each pair are compared. Seven-category values leave out histories ending in \textit{Out}: simulated chains stop at \textit{Out}, so those rows are always empty, whereas the observed episodes continue after \textit{Out}. Including them, observed vs predicted is 0.0248 (first-order) and 0.0414 (second-order), predicted vs test 0.0636 and 0.1321, and train vs test 0.0609 and 0.1358. MAE is comparable between orders in direction only: second-order matrices have more rows, each estimated from fewer transitions.
+\end{minipage}
+\end{table}

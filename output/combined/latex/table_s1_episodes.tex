@@ -1,0 +1,26 @@
+\begin{table}[htbp]
+\centering
+\small
+\caption{Care episodes required for stable second-order estimates, assuming additional episodes have the same mix of contacts as the current 130 training episodes.}
+\label{tab:s1_episodes}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}llrrrr}
+\toprule
+ & & & \multicolumn{3}{c}{\textbf{Episodes for the target to be met by}} \\
+\cmidrule(lr){4-6}
+\textbf{Model} & \textbf{Target SE} & $k$ & \shortstack{\textbf{Average}\\\textbf{state pair}} & \shortstack{\textbf{90\% of}\\\textbf{state pairs}} & \shortstack{\textbf{All observed}\\\textbf{state pairs}} \\
+\midrule
+5 categories & 0.10 (broad) & 9 & 11 & 122 & 585 \\
+ & 0.05 (intermediate) & 36 & 42 & 488 & 2,340 \\
+ & 0.03 (precise) & 100 & 116 & 1,355 & 6,500 \\
+\addlinespace
+7 categories & 0.10 (broad) & 9 & 16 & 585 & 1,170 \\
+ & 0.05 (intermediate) & 36 & 62 & 2,340 & 4,680 \\
+ & 0.03 (precise) & 100 & 172 & 6,500 & 13,000 \\
+\bottomrule
+\end{tabular*}
+\par\smallskip
+\begin{minipage}{\linewidth}\footnotesize
+Episodes required $= 130 \times k / n$, where $n$ is the mean, 10th-percentile or minimum number of observations per observed state pair (Table~\ref{tab:s1_data}). State pairs never observed are not included, so all values are lower bounds. The all-observed column depends on the single rarest state pair and is therefore very uncertain. Using all 164 episodes instead of the 130 training episodes would raise every $n$ by about a quarter, but would not change the number of episodes required, which depends only on how often each state pair occurs per episode.
+\end{minipage}
+\end{table}

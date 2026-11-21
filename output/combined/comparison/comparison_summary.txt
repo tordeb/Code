@@ -20,7 +20,7 @@ Score                                                          |                
 Log-likelihood per transition (main categories)                | -1.1227 [-1.1953, -1.0501] | -1.0872 [-1.1546, -1.0197] |   +0.0356 [+0.0076, +0.0635] |    < 0.001 | Second
 Log-likelihood per transition (all categories)                 | -1.3573 [-1.4283, -1.2863] | -1.3116 [-1.3793, -1.2440] |   +0.0456 [+0.0216, +0.0697] |    < 0.001 | Second
 Next-contact accuracy (main categories)                        |    0.5923 [0.5512, 0.6334] |    0.6367 [0.6010, 0.6724] |   +0.0444 [+0.0139, +0.0749] |      0.094 | Second
-Next-contact accuracy (all categories)                         |    0.5198 [0.4849, 0.5547] |    0.5564 [0.5232, 0.5897] |   +0.0366 [+0.0130, +0.0603] |      0.010 | Second
+Next-contact accuracy (all categories)                         |    0.5198 [0.4849, 0.5547] |    0.5564 [0.5232, 0.5897] |   +0.0366 [+0.0130, +0.0603] |      0.009 | Second
 Normalised Levenshtein, fixed (lower is better)                |    0.6148 [0.5934, 0.6362] |    0.6312 [0.6108, 0.6516] |   +0.0164 [+0.0142, +0.0186] |    < 0.001 | First
 Normalised Needleman-Wunsch, fixed                             | -1.1308 [-1.3611, -0.9005] | -1.1739 [-1.4030, -0.9448] |   -0.0431 [-0.0492, -0.0370] |    < 0.001 | First
 Normalised Smith-Waterman, fixed                               |    0.3715 [0.3555, 0.3875] |    0.3622 [0.3469, 0.3775] |   -0.0093 [-0.0121, -0.0065] |    < 0.001 | First

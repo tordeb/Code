@@ -1,0 +1,55 @@
+\begin{table}[htbp]
+\centering
+\small
+\caption{Key findings for the first- and second-order models, combined data. Panel A: results for each model; panel B: results for each simulation method. Arrows show the direction that is better; the better order is in bold where the comparison is a test.}
+\label{tab:key_findings}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lrr}
+\toprule
+\multicolumn{3}{l}{\textbf{A. Model}} \\
+\midrule
+ & \textbf{First-order} & \textbf{Second-order} \\
+\midrule
+\textit{Order selection (all 164 episodes)} & & \\
+\quad BIC, 5 categories ($\downarrow$) & \textbf{6,334.7} & 6,563.3 \\
+\quad BIC, 7 categories ($\downarrow$) & \textbf{8,646.8} & 9,068.2 \\
+\textit{Leave-one-out, unseen episodes} & & \\
+\quad Perplexity, 5 categories ($\downarrow$) & 3.07 & \textbf{2.97} \\
+\quad Perplexity, 7 categories ($\downarrow$) & 3.89 & \textbf{3.71} \\
+\quad Accuracy, 5 categories ($\uparrow$) & 0.592 & \textbf{0.637} \\
+\quad Accuracy, 7 categories ($\uparrow$) & 0.520 & \textbf{0.556} \\
+\textit{Estimation (130 training episodes)} & & \\
+\quad Unobserved transitions, 5 / 7 cat. & 0 / 7 & 14 / 162 \\
+\quad Convergence, 5 / 7 cat. & Stable / Stable & Unstable / Moderate \\
+\quad Resampling max.\ SD, 5 / 7 cat. ($\downarrow$) & 0.026 / 0.048 & 0.303 / 0.427 \\
+\quad Train vs test MAE, 5 / 7 cat. ($\downarrow$) & 0.0557 / 0.0497 & 0.1565 / 0.1285 \\
+\bottomrule
+\end{tabular*}
+
+\vspace{1em}
+
+\setlength{\tabcolsep}{3pt}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lrrrrrr}
+\toprule
+\multicolumn{7}{l}{\textbf{B. Simulation method}} \\
+\midrule
+ & \multicolumn{3}{c}{\textbf{In-sample}} & \multicolumn{3}{c}{\textbf{Unseen episodes}} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}
+\textbf{Method} & \shortstack{\textbf{MAE}\\obs.\ vs pred.} & \shortstack{\textbf{Hellinger}\\length} & \shortstack{\textbf{Hellinger}\\contacts} & \shortstack{\textbf{MAE}\\pred.\ vs test} & \shortstack{\textbf{Lev.}\\($\downarrow$)} & \shortstack{\textbf{S-W}\\($\uparrow$)} \\
+\midrule
+\multicolumn{7}{l}{\textit{First-order}} \\
+\quad Fixed & 0.0036 & 0.813 & 0.274 & 0.0564 & 0.615 & 0.371$^*$ \\
+\quad Fitted & 0.0039 & 0.119 & 0.205 & 0.0549 & 0.654 & 0.408$^*$ \\
+\quad Terminating & 0.0051 & 0.243 & 0.176 & 0.0504 & 0.620$^*$ & 0.440$^*$ \\
+\addlinespace
+\multicolumn{7}{l}{\textit{Second-order}} \\
+\quad Fixed & 0.0194 & 0.813 & 0.253 & 0.1554 & 0.631 & 0.362$^*$ \\
+\quad Fitted & 0.0131 & 0.127 & 0.202 & 0.1552 & 0.666 & 0.399$^*$ \\
+\quad Terminating & 0.0277 & 0.249 & 0.173 & 0.1312 & 0.609$^*$ & 0.422$^*$ \\
+\bottomrule
+\end{tabular*}
+\par\smallskip
+\begin{minipage}{\linewidth}\footnotesize
+A: BIC from the order-selection test on all episodes (Table~\ref{tab:order_selection}); perplexity and accuracy from leave-one-out validation (Table~\ref{tab:loo}), in bold where the 95\% CI of the difference between orders excludes zero (with add-one smoothing; the log-likelihood difference is not significant with smoothing 0.1). Convergence is for the two tracked transitions (Section~3.2). Resampling SD is the largest standard deviation of any transition probability (Table~\ref{tab:bootstrap}). B: MAE and Hellinger distances are in-sample checks against the 130 training episodes (Tables~\ref{tab:hellinger} and~\ref{tab:matrix_mae}); Hellinger contacts is the average over the five main categories; terminating-state MAEs leave out histories ending in \textit{Out}. Lev.\ and S-W are the normalised Levenshtein distance and Smith-Waterman score between simulated chains and held-out episodes in leave-one-out validation; $^*$ better than the scrambled baseline.
+\end{minipage}
+\end{table}

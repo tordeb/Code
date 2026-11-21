@@ -60,6 +60,23 @@ predicted_test_mae = {
 }
 
 
+def without_out_histories(matrix):
+    """
+    Drop the rows whose history ends in Out. Simulated terminating-state chains stop at Out, so their Out rows are
+    always empty, while the observed data has contacts after Out (37 actual episodes). Comparing those rows measures
+    that modelling choice, not how well the simulations reproduce the transitions.
+    """
+    last_state = matrix.index if matrix.index.nlevels == 1 else matrix.index.get_level_values(-1)
+    return matrix[last_state != "Out"]
+
+
+# The same 7-category MAEs without histories ending in Out
+mae_terminating_without_out = calculate_mae_safe(without_out_histories(observed_all), predicted_terminating_all)
+predicted_test_mae_terminating_without_out = calculate_mae_safe(without_out_histories(test_matrix_all),
+                                                                predicted_terminating_all)
+train_test_mae_all_without_out = calculate_mae_safe(without_out_histories(observed_all), test_matrix_all)
+
+
 # --------------------------------------------------------------------------------------------------------------------------------------
 # DNA Sequence Comparisons
 # --------------------------------------------------------------------------------------------------------------------------------------
@@ -456,6 +473,33 @@ sensitivity_results_main = sensitivity_analysis(
     observed_main, predicted_fixed_main, train_start_probs_main, main_categories, {"length": avg_length}
 )
 sensitivity_results_all = sensitivity_analysis(
+    observed_all, predicted_terminating_all, train_start_probs_all, all_categories, {"stop_state": "Out"}
+)
+
+
+# ----------------------------------
+# Noise Floor (0% noise)
+# ----------------------------------
+# The same test with no perturbation at all: re-simulating 100 chains from the unperturbed matrix already gives a
+# predicted matrix that differs from the 1,000-chain one, just from simulation randomness. Perturbation MAEs are only
+# meaningful above this floor. The random state is saved and restored, so everything after this is unaffected.
+
+def noise_floor(observed_matrix, predicted_matrix, start_probs, categories, simulation_kwargs):
+    state = np.random.get_state()
+    lookup = build_lookup(observed_matrix)
+    mae_values = []
+    for test in range(n_tests_per_level):
+        chains = [simulate(lookup, start_probs, categories, **simulation_kwargs) for _ in range(n_chains_per_test)]
+        resimulated = calculate_transition_matrix(chains_to_transitions(chains), HISTORY_COLS, NEXT_COL, categories)
+        mae_values.append(calculate_mae_safe(predicted_matrix, resimulated))
+    np.random.set_state(state)
+    return {"noise_level": 0.0, "mean_mae": np.mean(mae_values), "std_mae": np.std(mae_values)}
+
+
+noise_floor_main = noise_floor(
+    observed_main, predicted_fixed_main, train_start_probs_main, main_categories, {"length": avg_length}
+)
+noise_floor_all = noise_floor(
     observed_all, predicted_terminating_all, train_start_probs_all, all_categories, {"stop_state": "Out"}
 )
 

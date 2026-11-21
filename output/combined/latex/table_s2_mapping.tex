@@ -1,0 +1,66 @@
+\begin{table}[htbp]
+\centering
+\footnotesize
+\caption{Mapping of every surface label in the data to its surface category, with the number of contacts in mock and actual care.}
+\label{tab:s2_mapping}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}llrr}
+\toprule
+\textbf{Category} & \textbf{Surface label} & \textbf{Mock} & \textbf{Actual} \\
+\midrule
+Equipment & Equipment & 3 & 0 \\
+ & IV & 89 & 0 \\
+ & ObsTrolley & 217 & 175 \\
+ & Sharps & 5 & 22 \\
+ & Stethoscope & 3 & 45 \\
+ & Tray & 46 & 45 \\
+ & BloodObsEq$^\dagger$ & 0 & 262 \\
+ & EqMisc$^\dagger$ & 0 & 20 \\
+ & EqTray$^\dagger$ & 0 & 156 \\
+ & IVDrip$^\dagger$ & 0 & 129 \\
+ & IVStand$^\dagger$ & 0 & 145 \\
+ & MedsTrolley$^\dagger$ & 0 & 110 \\
+ & Nebuliser$^\dagger$ & 0 & 6 \\
+ & Syringe$^\dagger$ & 0 & 110 \\
+ & TabletComputer$^\dagger$ & 0 & 345 \\
+\addlinespace
+Patient & Patient & 203 & 289 \\
+\addlinespace
+Near Patient & Bed & 13 & 0 \\
+ & Chair & 3 & 19 \\
+ & Table & 30 & 6 \\
+ & Bedding$^\dagger$ & 0 & 61 \\
+ & OtherNear$^\dagger$ & 0 & 35 \\
+\addlinespace
+Far Patient & Door & 211 & 35 \\
+ & Other & 34 & 0 \\
+ & Curtain$^\dagger$ & 0 & 58 \\
+ & Notes$^\dagger$ & 0 & 131 \\
+ & OtherFar$^\dagger$ & 0 & 9 \\
+ & WindowBlind$^\dagger$ & 0 & 1 \\
+\addlinespace
+Hygiene Areas & Alc & 28 & 0 \\
+ & AlcOutside & 10 & 12 \\
+ & ApronOff & 5 & 0 \\
+ & ApronOn & 4 & 0 \\
+ & GlovesOff & 11 & 31 \\
+ & GlovesOn & 10 & 41 \\
+ & PaperTowel & 24 & 37 \\
+ & Sink & 44 & 2 \\
+ & Soap & 28 & 31 \\
+ & Waste & 21 & 75 \\
+ & Wipes & 1 & 10 \\
+ & AlcInside$^\dagger$ & 0 & 22 \\
+ & GownOff$^\dagger$ & 0 & 18 \\
+ & GownOn$^\dagger$ & 0 & 23 \\
+ & Tap$^\dagger$ & 0 & 54 \\
+\addlinespace
+In & In & 62 & 105 \\
+\addlinespace
+Out & Out & 59 & 105 \\
+\bottomrule
+\end{tabular*}
+\par\smallskip
+\begin{minipage}{\linewidth}\footnotesize
+44 surface labels. $^\dagger$ Recorded only in actual care; mapped to the category of the closest mock surface (e.g.\ GownOn as ApronOn, IVDrip as IV). Curtain and Notes were assigned to Far Patient. In and Out mark the health care worker crossing the room boundary.
+\end{minipage}
+\end{table}

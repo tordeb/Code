@@ -1,0 +1,34 @@
+\begin{table}[htbp]
+\centering
+\small
+\caption{Observations per preceding state (first-order) or state pair (second-order) in the 130 training episodes.}
+\label{tab:s1_data}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lrrrr}
+\toprule
+ & \multicolumn{2}{c}{\textbf{First-order}} & \multicolumn{2}{c}{\textbf{Second-order}} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+ & 5 cat. & 7 cat. & 5 cat. & 7 cat. \\
+\midrule
+Transitions & 2,977 & 3,319 & 2,803 & 3,189 \\
+Transitions per episode ($u$) & 22.9 & 25.5 & 21.6 & 24.5 \\
+Histories observed / possible & 5 / 5 & 7 / 7 & 25 / 25 & 42 / 49 \\
+Transitions unobserved / possible & 0 / 25 & 7 / 49 & 14 / 125 & 162 / 343 \\
+\addlinespace
+\multicolumn{5}{l}{\textit{Observations per observed history ($n$)}} \\
+\quad Mean & 595.4 & 474.1 & 112.1 & 75.9 \\
+\quad Median & 407 & 373 & 36 & 18 \\
+\quad 10th percentile & 198.6 & 90.4 & 9.6 & 2.0 \\
+\quad Minimum & 131 & 28 & 2 & 1 \\
+\addlinespace
+\multicolumn{5}{l}{\textit{Share of observed histories with $n \geq k$}} \\
+\quad $k = 9$ (SE 0.10) & 100\% & 100\% & 88\% & 76\% \\
+\quad $k = 36$ (SE 0.05) & 100\% & 86\% & 52\% & 36\% \\
+\quad $k = 100$ (SE 0.03) & 100\% & 86\% & 28\% & 19\% \\
+\bottomrule
+\end{tabular*}
+\par\smallskip
+\begin{minipage}{\linewidth}\footnotesize
+A history is the state (first-order) or state pair (second-order) a transition is conditioned on; $n$ is the number of transitions observed from it. Five-category counts use only runs of contacts that all fall in the five categories. Unobserved transitions are counted over the full grid (5$^3$ = 125 and 7$^3$ = 343 for second-order), including histories never observed.
+\end{minipage}
+\end{table}

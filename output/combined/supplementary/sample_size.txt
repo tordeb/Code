@@ -1,0 +1,34 @@
+DATA REQUIREMENTS FOR SECOND-ORDER ESTIMATION (combined, 130 training episodes)
+
+--- Order 1, 5 categories ---
+Transitions: 2,977 (22.9 per episode)
+Histories observed: 5 of 5; transitions unobserved: 0 of 25
+Observations per observed history: mean 595.4, median 407, 10th percentile 198.6, minimum 131
+  SE 0.10 (k = 9): 100% of histories met; episodes needed: average 2, 90% 6, all 9
+  SE 0.05 (k = 36): 100% of histories met; episodes needed: average 8, 90% 24, all 36
+  SE 0.03 (k = 100): 100% of histories met; episodes needed: average 22, 90% 66, all 100
+
+--- Order 1, 7 categories ---
+Transitions: 3,319 (25.5 per episode)
+Histories observed: 7 of 7; transitions unobserved: 7 of 49
+Observations per observed history: mean 474.1, median 373, 10th percentile 90.4, minimum 28
+  SE 0.10 (k = 9): 100% of histories met; episodes needed: average 3, 90% 13, all 42
+  SE 0.05 (k = 36): 86% of histories met; episodes needed: average 10, 90% 52, all 168
+  SE 0.03 (k = 100): 86% of histories met; episodes needed: average 28, 90% 144, all 465
+
+--- Order 2, 5 categories ---
+Transitions: 2,803 (21.6 per episode)
+Histories observed: 25 of 25; transitions unobserved: 14 of 125
+Observations per observed history: mean 112.1, median 36, 10th percentile 9.6, minimum 2
+  SE 0.10 (k = 9): 88% of histories met; episodes needed: average 11, 90% 122, all 585
+  SE 0.05 (k = 36): 52% of histories met; episodes needed: average 42, 90% 488, all 2,340
+  SE 0.03 (k = 100): 28% of histories met; episodes needed: average 116, 90% 1,355, all 6,500
+
+--- Order 2, 7 categories ---
+Transitions: 3,189 (24.5 per episode)
+Histories observed: 42 of 49; transitions unobserved: 162 of 343
+Observations per observed history: mean 75.9, median 18, 10th percentile 2.0, minimum 1
+  SE 0.10 (k = 9): 76% of histories met; episodes needed: average 16, 90% 585, all 1,170
+  SE 0.05 (k = 36): 36% of histories met; episodes needed: average 62, 90% 2,340, all 4,680
+  SE 0.03 (k = 100): 19% of histories met; episodes needed: average 172, 90% 6,500, all 13,000
+

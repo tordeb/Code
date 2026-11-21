@@ -1,0 +1,27 @@
+\begin{table}[htbp]
+\centering
+\small
+\caption{Markov chain order selection. $G^2$ is the likelihood-ratio statistic for adding one more step of history (Anderson and Goodman, 1957); the BIC penalty is the extra parameters times $\ln N$, on the same scale as $G^2$, so BIC prefers the higher order only when $G^2$ exceeds it.}
+\label{tab:order_selection}
+\setlength{\tabcolsep}{3pt}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lrrrrrrrc}
+\toprule
+ & & & \multicolumn{2}{c}{\textbf{Order 0 vs 1}} & \multicolumn{3}{c}{\textbf{Order 1 vs 2}} & \\
+\cmidrule(lr){4-5}\cmidrule(lr){6-8}
+\textbf{Data} & \textbf{States} & $N$ & $G^2$ (df) & $p$ & $G^2$ (df) & $p$ & \shortstack{\textbf{BIC}\\\textbf{penalty}} & \shortstack{\textbf{BIC}\\\textbf{order}} \\
+\midrule
+Mock & 5 & 902 & 498.2 (16) & $<$0.001 & 204.0 (47) & $<$0.001 & 319.8 & 1 \\
+ & 7 & 1,040 & 741.2 (18) & $<$0.001 & 296.1 (55) & $<$0.001 & 382.1 & 1 \\
+\addlinespace
+Actual & 5 & 2,234 & 1156.2 (16) & $<$0.001 & 286.2 (54) & $<$0.001 & 416.4 & 1 \\
+ & 7 & 2,576 & 1351.4 (29) & $<$0.001 & 466.4 (105) & $<$0.001 & 824.7 & 1 \\
+\addlinespace
+Pooled & 5 & 3,136 & 1700.2 (16) & $<$0.001 & 343.0 (71) & $<$0.001 & 571.6 & 1 \\
+ & 7 & 3,616 & 2085.4 (29) & $<$0.001 & 586.3 (123) & $<$0.001 & 1007.8 & 1 \\
+\bottomrule
+\end{tabular*}
+\par\smallskip
+\begin{minipage}{\linewidth}\footnotesize
+$N$ is the number of transitions with at least two earlier contacts in the same episode, all in the state set; all three orders are fitted to these same transitions, using every episode. Degrees of freedom count only transitions observed in the data. $p$-values use the chi-squared approximation, which treats transitions as independent and is unreliable for sparse second-order cells; they are not corrected for multiple testing.
+\end{minipage}
+\end{table}

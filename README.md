@@ -52,12 +52,16 @@ A second-order chain works like a first-order chain whose states are pairs. Ever
   - `compare.py`: puts the first- and second-order results side by side
   - `dataset_comparison.py`: compares mock vs actual care and single- vs multi-bed rooms
   - `latex_tables.py`: LaTeX tables for the paper's mock vs actual section
+  - `order_selection.py`: chooses the Markov chain order with likelihood-ratio (G²) tests and BIC
+  - `results_tables.py`: LaTeX tables for the paper's model results, built from `summary.json` (written to `output/<dataset>/latex/`)
+  - `supplementary.py`: supplementary tables: data needed for stable second-order estimates (S1) and the full surface-to-category mapping (S2)
   - `distances.py`: Hellinger distance, shared by the metrics and the dataset comparison
   - `data_exploration.py`: a quick look at the raw data (not part of the analysis)
 - `data/`: the dataset (`MockVsActual_GithubDOI.csv`)
 - `output/<dataset>/first_order/`, `output/<dataset>/second_order/`: full results (`.txt`), per-episode cross-validation scores (`.csv`) and figures for each model
 - `output/<dataset>/comparison/`: first- vs second-order comparison tables (`.txt` and `.csv`) and figures
 - `output/data_comparison/`: mock vs actual and single- vs multi-bed comparison, with LaTeX tables in `latex/`
+- `output/order_selection/`: G² tests and BIC for orders 0, 1 and 2 (`.txt` and `.csv`); its LaTeX table also goes to `output/data_comparison/latex/`
 - `docs/notes.md`: detailed notes on how each part of the code works
 
 ## Running
@@ -67,6 +71,9 @@ pip install -r requirements.txt
 python src/main.py --order both --data combined    # first-order, second-order, then the comparison
 python src/main.py --order 1 --data mock           # first-order only, mock episodes only
 python src/dataset_comparison.py                   # mock vs actual, single-bed vs multi-bed
+python src/order_selection.py                      # order 0 vs 1 vs 2: G² tests and BIC
+python src/results_tables.py --data combined       # LaTeX tables for the model results (after main.py)
+python src/supplementary.py --data combined        # supplementary tables: data requirements (S1), surface mapping (S2)
 ```
 
 `--data` can be `mock`, `actual`, `actual_sb`, `actual_mb`, `combined_sb` (mock + actual single-bed) or `combined` (all 164 episodes, the default).

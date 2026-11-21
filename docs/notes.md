@@ -78,6 +78,25 @@ There are 12 files in `src/`. Run everything through Docker to save installing t
 12. Cross-Validation: `cross_validation.py`
    - Leave-one-out cross-validation: the main validation of each model on care episodes it was not trained on.
 
+13. Order Selection: `order_selection.py`
+   - Likelihood-ratio (G²) tests of order 0 vs 1 and order 1 vs 2, and the order BIC selects, for mock, actual and pooled episodes with 5 and 7 categories.
+   - All three orders are fitted to the same transitions (every contact with two earlier contacts in the same episode, all in the category list), so their log-likelihoods can be compared. Every episode is used, not only the training set.
+   - Degrees of freedom and BIC parameters count only transitions observed in the data. The BIC penalty for the higher order is (extra parameters) × ln N, on the same scale as G².
+
+14. Results Tables: `results_tables.py`
+   - Reads both orders' `summary.json` and writes LaTeX tables for the paper to `output/<dataset>/latex/`. Run it after `main.py --order both`.
+   - `table_hellinger.tex`: Hellinger distances for episode length and contacts per category. The average is over the five main categories for every method, so the terminating-state method is compared like-for-like (its In and Out rows are shown separately).
+   - `table_matrix_mae.tex`: MAE between transition matrices in three rows: observed vs predicted (in-sample), predicted vs test, and train vs test. The 7-category values leave out histories ending in Out (`metrics.without_out_histories`): simulated chains stop at Out, so their Out rows are always empty, while the observed episodes continue after Out, and comparing those rows would measure that modelling choice rather than the simulation. The values including Out are given in the table note and in the results files.
+   - `table_similarity.tex`: mean normalised Levenshtein, Needleman-Wunsch and Smith-Waterman (in-sample), each next to its scrambled baseline.
+   - `table_loo.tex`: leave-one-out validation: log-likelihood, perplexity and accuracy for orders 0, 1 and 2, the second- minus first-order difference with its 95% CI, and the similarity of simulated chains to the held-out episode next to the scrambled baseline. Reads `output/<dataset>/comparison/comparison_cross_validation.csv`.
+   - `table_perturbation.tex` and `table_bootstrap.tex`: sensitivity and robustness. The perturbation table starts with a 0% row (see the noise floor in `metrics.py`).
+
+15. Supplementary Material: `supplementary.py`
+   - S1, data requirements: how many episodes a second-order model would need for stable estimates. A transition probability conditioned on a state pair is estimated from the n times that state pair occurred, so with SE = sqrt(p(1 - p) / n) and p = 0.10, the targets SE 0.10, 0.05 and 0.03 need 9, 36 and 100 observations of the state pair.
+   - n is counted per observed state pair (row totals), not per matrix cell. The average hides the rare state pairs, so the script reports the share of state pairs already meeting each target and the episodes needed for the average, 90% and all observed state pairs (training episodes x k / n). Uses the training episodes. The episodes needed do not depend on how many episodes are used, only on how often each state pair occurs per episode.
+   - S2: every surface label in the data, its category, and its contact counts in mock and actual care.
+   - Writes `output/<dataset>/supplementary/sample_size.txt` and `table_s1_*.tex`, `table_s2_mapping.tex` to `output/<dataset>/latex/`.
+
 `data_exploration.py` is a separate script for looking at the raw data. It is not included in the analysis.
 
  
@@ -103,6 +122,9 @@ There are 12 files in `src/`. Run everything through Docker to save installing t
 python src/main.py --order both --data combined    # first-order, second-order, then the comparison
 python src/main.py --order 1 --data mock           # first-order only, mock episodes only
 python src/dataset_comparison.py                   # mock vs actual, single-bed vs multi-bed
+python src/order_selection.py                      # order 0 vs 1 vs 2: G² tests and BIC
+python src/results_tables.py --data combined       # LaTeX tables for the model results (after main.py)
+python src/supplementary.py --data combined        # supplementary tables: data requirements (S1), surface mapping (S2)
 ```
 
 `--data` chooses which care episodes are used:
@@ -122,7 +144,7 @@ python src/dataset_comparison.py                   # mock vs actual, single-bed 
 - `output/combined/second_order/`: `second_order_results.txt`, `summary.json`, and the figures,
 - `output/combined/comparison/`: `comparison_summary.txt`, `comparison_summary.csv`, and `comparison_metrics.png`.
 
-`dataset_comparison.py` writes to `output/data_comparison/`.
+`dataset_comparison.py` writes to `output/data_comparison/`. `order_selection.py` writes to `output/order_selection/`, and its LaTeX table to `output/data_comparison/latex/`.
 
 The random seed (`--seed`, default 42) is the same for both orders. Running the code again with the same seed gives exactly the same results.
 
@@ -492,6 +514,8 @@ This file compares the observed data with the predictions from all three simulat
 
    It adds random noise between -noise_level and +noise_level to each value, makes sure no probability is negative, and normalises each row to sum to 1.
    This is repeated at 0.1%, 0.5%, 1%, 2% and 5% noise, 50 times per level. Each time, 100 chains are simulated from the perturbed matrix, and their predicted matrix is compared with the original predicted matrix using `calculate_mae_safe`. This is done for the main-category model (fixed length) and the all-category model (terminating state), and the two are compared to see which is more robust.
+
+   Noise floor: the same test is also run with no perturbation (0% noise). Simulating only 100 chains already gives a predicted matrix that differs from the 1,000-chain one, so perturbation MAEs only mean something above this floor. On the combined data, MAEs up to 1% noise are within the floor for both orders. The random state is saved and restored around the noise-floor runs, so all later results are unchanged.
 
    ## Bootstrap Analysis
 

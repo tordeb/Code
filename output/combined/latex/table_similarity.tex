@@ -1,0 +1,33 @@
+\begin{table}[htbp]
+\centering
+\small
+\caption{Mean normalised sequence similarity between the simulated chains and the training episodes (in-sample), for each simulation method and for the same chains with their contacts shuffled (scrambled baseline). Values in bold beat the scrambled baseline.}
+\label{tab:similarity}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lrrrr}
+\toprule
+ & \multicolumn{2}{c}{\textbf{First-order}} & \multicolumn{2}{c}{\textbf{Second-order}} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+ & \textbf{Model} & \textbf{Scrambled} & \textbf{Model} & \textbf{Scrambled} \\
+\midrule
+\multicolumn{5}{l}{\textit{Levenshtein distance ($\downarrow$)}} \\
+\quad Fixed & 0.590 & 0.582 & 0.603 & 0.591 \\
+\quad Fitted & 0.628 & 0.619 & 0.640 & 0.627 \\
+\quad Terminating & \textbf{0.611} & 0.654 & \textbf{0.604} & 0.657 \\
+\addlinespace
+\multicolumn{5}{l}{\textit{Needleman-Wunsch score ($\uparrow$)}} \\
+\quad Fixed & -0.937 & -0.908 & -0.971 & -0.931 \\
+\quad Fitted & -1.572 & -1.524 & -1.574 & -1.518 \\
+\quad Terminating & \textbf{-2.305} & -2.469 & \textbf{-1.979} & -2.182 \\
+\addlinespace
+\multicolumn{5}{l}{\textit{Smith-Waterman score ($\uparrow$)}} \\
+\quad Fixed & \textbf{0.385} & 0.360 & \textbf{0.379} & 0.352 \\
+\quad Fitted & \textbf{0.417} & 0.385 & \textbf{0.410} & 0.381 \\
+\quad Terminating & \textbf{0.445} & 0.390 & \textbf{0.433} & 0.368 \\
+\bottomrule
+\end{tabular*}
+\par\smallskip
+\begin{minipage}{\linewidth}\footnotesize
+Each of the 1,000 simulated chains is compared with each of the 130 training episodes. Levenshtein: 1 $-$ normalised similarity ratio, lower is better. Needleman-Wunsch: global alignment score divided by the shorter sequence length (match 1, mismatch $-1$, gap $-1$). Smith-Waterman: local alignment score divided by twice the shorter length (match 2, mismatch $-1$, gap $-1$). Scrambled: the first 200 chains of each method with their contacts shuffled, keeping their length and category mix.
+\end{minipage}
+\end{table}

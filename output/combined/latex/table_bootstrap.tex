@@ -1,0 +1,22 @@
+\begin{table}[htbp]
+\centering
+\small
+\caption{Resampling: variability of the transition probabilities across 100 matrices, each estimated from a random 80\% of the training episodes.}
+\label{tab:bootstrap}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lrrrr}
+\toprule
+ & \multicolumn{2}{c}{\textbf{First-order}} & \multicolumn{2}{c}{\textbf{Second-order}} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+ & $5\times5$ & $7\times7$ & $25\times5$ & $49\times7$ \\
+\midrule
+Mean abs.\ difference from mean & 0.0011 & 0.0010 & 0.0031 & 0.0036 \\
+Average SD & 0.0109 & 0.0104 & 0.0355 & 0.0251 \\
+Maximum SD & 0.0261 & 0.0478 & 0.3031 & 0.4271 \\
+\bottomrule
+\end{tabular*}
+\par\smallskip
+\begin{minipage}{\linewidth}\footnotesize
+SD is the standard deviation of each transition probability across the 100 resampled matrices, averaged over every cell of the full matrix (including state pairs never observed, which are 0 in every sample). Sampling 80\% of episodes without replacement understates the variation expected between independent datasets of the same size. Most variable transition: $5\times5$: Near Patient $\rightarrow$ Near Patient; $7\times7$: Out $\rightarrow$ Equipment; $25\times5$: (Hygiene Areas, Near Patient) $\rightarrow$ Equipment; $49\times7$: (Near Patient, Out) $\rightarrow$ In.
+\end{minipage}
+\end{table}

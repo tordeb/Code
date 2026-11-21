@@ -127,9 +127,9 @@ Is current data sufficient?
 Running 1000 simulations for each method...
 Average Care Period Length: 26
 
-5x5 fixed length simulations: 0.14 seconds
-5x5 fitted length simulations: 0.13 seconds
-7x7 terminating state simulations: 0.14 seconds
+5x5 fixed length simulations: 0.13 seconds
+5x5 fitted length simulations: 0.14 seconds
+7x7 terminating state simulations: 0.13 seconds
 
 Steps where the history was never seen in training (next state picked at random):
   5x5 fixed length: 0
@@ -163,7 +163,7 @@ Using: NegBinom(n=2.82, p=0.096)
 Sampled lengths: min=1, max=93, mean=26.47
 
 
-Fitted-length simulations completed in 0.13 seconds
+Fitted-length simulations completed in 0.14 seconds
 
 === Predicted 5x5 Matrix (from fixed-length simulations) ===
 Next_Category      Equipment  Patient  NearPatient  FarPatient  HygieneArea
@@ -264,7 +264,7 @@ FarPatient            -0.003    0.001        0.003      -0.006        0.006
 HygieneArea           -0.003    0.002        0.000       0.002       -0.002
 
 Mean Absolute Error for 5x5 (fixed length): 0.0036
-Mean Absolute Error for 7x7: 0.0248
+Mean Absolute Error for 7x7: 0.0248 (without histories ending in Out: 0.0051)
 Mean Absolute Error for 5x5 (fitted length): 0.0039
 
 ==== Difference between Observed and Test Matrices ===
@@ -289,12 +289,14 @@ HygieneArea        0.002      0.206   -0.001       -0.031      -0.079       -0.0
 Out                0.071      0.246    0.000        0.000      -0.448        0.131  0.000
 
 Mean Absolute Error (Train vs Test) for 5x5: 0.0557
-Mean Absolute Error (Train vs Test) for 7x7: 0.0609
+Mean Absolute Error (Train vs Test) for 7x7: 0.0609 (without histories ending in Out: 0.0497)
 
 Mean Absolute Error (Predicted vs Test), for each simulation method:
   5x5 fixed length: 0.0564
   5x5 fitted length: 0.0549
   7x7 terminating state: 0.0636
+  7x7_terminating without histories ending in Out: 0.0504
+  (Simulated chains stop at Out, so their Out rows are empty; the observed data continues after Out.)
 (Train vs Test does not depend on the simulation method, so it is the same for fixed and fitted length.)
 
 === Levenshtein Distance Summary (simulated chains vs training episodes, in-sample) ===
@@ -302,7 +304,7 @@ Mean Absolute Error (Predicted vs Test), for each simulation method:
 Observed chains:  130
 Simulated chains: 1000
 Total comparisons: 130 x 1000 = 130,000
-Calculation time: 0.06 seconds
+Calculation time: 0.07 seconds
 Absolute Distance (Lower is better/more similar):
   Mean:   22.68
   Median: 21.00
@@ -326,7 +328,7 @@ Normal Fit (Normalised):  μ = 0.5903, σ = 0.1656
 Observed chains:  130
 Simulated chains: 1000
 Total comparisons: 130 x 1000 = 130,000
-Calculation time: 0.07 seconds
+Calculation time: 0.08 seconds
 Absolute Distance (Lower is better/more similar):
   Mean:   25.75
   Median: 23.00
@@ -375,7 +377,7 @@ Normal Fit (Normalised):  μ = 0.6109, σ = 0.1715
 Observed chains:  130
 Simulated chains: 1000
 Total comparisons: 130 x 1000 = 130,000
-Calculation time: 128.08 seconds
+Calculation time: 134.40 seconds
 Absolute Score (Higher is better/more similar):
   Mean:   -11.85
   Median: -11.00
@@ -399,7 +401,7 @@ Normal Fit (Normalised):  μ = -0.9368, σ = 1.2154
 Observed chains:  130
 Simulated chains: 1000
 Total comparisons: 130 x 1000 = 130,000
-Calculation time: 129.14 seconds
+Calculation time: 133.46 seconds
 Absolute Score (Higher is better/more similar):
   Mean:   -15.54
   Median: -13.00
@@ -423,7 +425,7 @@ Normal Fit (Normalised):  μ = -1.5724, σ = 2.3422
 Observed chains:  130
 Simulated chains: 1000
 Total comparisons: 130 x 1000 = 130,000
-Calculation time: 124.55 seconds
+Calculation time: 128.83 seconds
 Absolute Score (Higher is better/more similar):
   Mean:   -17.02
   Median: -13.00
@@ -448,7 +450,7 @@ Normal Fit (Normalised):  μ = -2.3046, σ = 3.5410
 Observed chains:  130
 Simulated chains: 1000
 Total comparisons: 130 x 1000 = 130,000
-Calculation time: 42.41 seconds
+Calculation time: 45.48 seconds
 Absolute Score (Higher is better/more similar):
   Mean:   15.83
   Median: 15.00
@@ -472,7 +474,7 @@ Normal Fit (Normalised):  μ = 0.3848, σ = 0.1640
 Observed chains:  130
 Simulated chains: 1000
 Total comparisons: 130 x 1000 = 130,000
-Calculation time: 43.25 seconds
+Calculation time: 43.68 seconds
 Absolute Score (Higher is better/more similar):
   Mean:   14.72
   Median: 13.00
@@ -496,7 +498,7 @@ Normal Fit (Normalised):  μ = 0.4167, σ = 0.1987
 Observed chains:  130
 Simulated chains: 1000
 Total comparisons: 130 x 1000 = 130,000
-Calculation time: 41.73 seconds
+Calculation time: 44.16 seconds
 Absolute Score (Higher is better/more similar):
   Mean:   13.32
   Median: 10.00
@@ -534,6 +536,7 @@ Method                     | Metric            |    Model | Scrambled | Model - 
 
 === Sensitivity Analysis ===
 === 5x5 Matrix Sensitivity ===
+Noise Level 0.0% (no perturbation, simulation noise only): MAE = 0.0160 ± 0.0035
 Noise Level 0.1%: MAE = 0.0170 ± 0.0029
 Noise Level 0.5%: MAE = 0.0157 ± 0.0030
 Noise Level 1.0%: MAE = 0.0168 ± 0.0035
@@ -542,6 +545,7 @@ Noise Level 5.0%: MAE = 0.0306 ± 0.0069
 5x5 Model sensitivity: LOW
 
 === 7x7 Matrix Sensitivity ===
+Noise Level 0.0% (no perturbation, simulation noise only): MAE = 0.0144 ± 0.0026
 Noise Level 0.1%: MAE = 0.0148 ± 0.0030
 Noise Level 0.5%: MAE = 0.0154 ± 0.0028
 Noise Level 1.0%: MAE = 0.0164 ± 0.0028

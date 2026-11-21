@@ -77,8 +77,9 @@ def run_single_order():
     from metrics import (
         difference_fixed_main, difference_fitted_main, difference_terminating_all, mae_main, mae_all, mae_fitted,
         train_test_difference_main, train_test_difference_all, train_test_mae_main, train_test_mae_all,
-        predicted_test_mae, levenshtein_results, nw_results, sw_results, scrambled_results, N_SCRAMBLED,
-        sensitivity_results_main, sensitivity_results_all, comparison_results,
+        predicted_test_mae, mae_terminating_without_out, predicted_test_mae_terminating_without_out,
+        train_test_mae_all_without_out, levenshtein_results, nw_results, sw_results, scrambled_results, N_SCRAMBLED,
+        sensitivity_results_main, sensitivity_results_all, noise_floor_main, noise_floor_all, comparison_results,
         final_mae_main, final_mae_all, conclusion,
         bootstrap_main, std_matrix_main, std_matrix_all, diff_from_mean_main, diff_from_mean_all,
         most_variable_main, most_variable_all,
@@ -300,7 +301,8 @@ def run_single_order():
             print(difference_fitted_main.round(3).to_string())
             print()
             print(f"Mean Absolute Error for {MAIN_LABEL} (fixed length): {mae_main:.4f}")
-            print(f"Mean Absolute Error for {ALL_LABEL}: {mae_all:.4f}")
+            print(f"Mean Absolute Error for {ALL_LABEL}: {mae_all:.4f} "
+                  f"(without histories ending in Out: {mae_terminating_without_out:.4f})")
             print(f"Mean Absolute Error for {MAIN_LABEL} (fitted length): {mae_fitted:.4f}")
             print()
 
@@ -313,11 +315,15 @@ def run_single_order():
             print(train_test_difference_all.round(3).to_string())
             print()
             print(f"Mean Absolute Error (Train vs Test) for {MAIN_LABEL}: {train_test_mae_main:.4f}")
-            print(f"Mean Absolute Error (Train vs Test) for {ALL_LABEL}: {train_test_mae_all:.4f}")
+            print(f"Mean Absolute Error (Train vs Test) for {ALL_LABEL}: {train_test_mae_all:.4f} "
+                  f"(without histories ending in Out: {train_test_mae_all_without_out:.4f})")
             print()
             print("Mean Absolute Error (Predicted vs Test), for each simulation method:")
             for method in simulation_methods.values():
                 print(f"  {method['name']}: {predicted_test_mae[method['kind']]:.4f}")
+            print(f"  {ALL_LABEL}_terminating without histories ending in Out: "
+                  f"{predicted_test_mae_terminating_without_out:.4f}")
+            print("  (Simulated chains stop at Out, so their Out rows are empty; the observed data continues after Out.)")
             print("(Train vs Test does not depend on the simulation method, so it is the same for fixed and fitted length.)")
             print()
 
@@ -373,8 +379,11 @@ def run_single_order():
 
             # Matrix Perturbation
             print("=== Sensitivity Analysis ===")
-            for label, results in ((MAIN_LABEL, sensitivity_results_main), (ALL_LABEL, sensitivity_results_all)):
+            for label, results, floor in ((MAIN_LABEL, sensitivity_results_main, noise_floor_main),
+                                          (ALL_LABEL, sensitivity_results_all, noise_floor_all)):
                 print(f"=== {label} Matrix Sensitivity ===")
+                print(f"Noise Level 0.0% (no perturbation, simulation noise only): "
+                      f"MAE = {floor['mean_mae']:.4f} ± {floor['std_mae']:.4f}")
                 for res in results:
                     print(f"Noise Level {res['noise_level']*100:.1f}%: MAE = {res['mean_mae']:.4f} ± {res['std_mae']:.4f}")
                 print(f"{label} Model sensitivity: {'HIGH' if results[-1]['mean_mae'] > 0.1 else 'LOW'}")
@@ -521,10 +530,21 @@ def run_single_order():
         "possible_histories_all": len(observed_all.columns) ** ORDER,
         "train_test_mae_main": train_test_mae_main,
         "train_test_mae_all": train_test_mae_all,
+        "train_test_mae_all_without_out": train_test_mae_all_without_out,
+        "mae_terminating_without_out": mae_terminating_without_out,
+        "predicted_test_mae_terminating_without_out": predicted_test_mae_terminating_without_out,
         "sensitivity_mae_5pct_main": final_mae_main,
         "sensitivity_mae_5pct_all": final_mae_all,
         "bootstrap_avg_std_main": std_matrix_main.mean(),
         "bootstrap_avg_std_all": std_matrix_all.mean(),
+        "bootstrap_mean_abs_diff_main": diff_from_mean_main.mean(),
+        "bootstrap_mean_abs_diff_all": diff_from_mean_all.mean(),
+        "bootstrap_max_std_main": std_matrix_main.max(),
+        "bootstrap_max_std_all": std_matrix_all.max(),
+        "bootstrap_most_variable_main": str(most_variable_main),
+        "bootstrap_most_variable_all": str(most_variable_all),
+        "sensitivity_main": [noise_floor_main] + sensitivity_results_main,
+        "sensitivity_all": [noise_floor_all] + sensitivity_results_all,
         "missing_main": len(missing_main),
         "possible_main": n_possible_main,
         "missing_all": len(missing_all),
@@ -532,6 +552,14 @@ def run_single_order():
         "convergence_main": f"{format_transition(target_main)}: {stability_main}",
         "convergence_all": f"{format_transition(target_all)}: {stability_all}",
         "capped_terminating_chains": simulation_counters["terminating"]["capped_chains"],
+        "fixed_length": avg_length,
+        "observed_lengths": {**length_stats, **observed_length_extremes},
+        "length_fit": {
+            "aic": {name: dist["aic"] for name, dist in distributions.items()},
+            "best": best_dist,
+            "best_params": distributions[best_dist]["params"] if best_dist in distributions else None,
+            "ks": goodness_of_fit,
+        },
         "cv": cv_summary,
         "cv_descriptions": CV_SCORES,
         "cv_baseline_descriptions": CV_BASELINES,
@@ -549,6 +577,8 @@ def run_single_order():
             "fallback_steps": simulation_counters[method["kind"]]["fallback_steps"],
             "hellinger_lengths": hellinger_results[method_name]["lengths"],
             "hellinger_visits": hellinger_results[method_name]["average_visits"],
+            "hellinger_visits_by_category": hellinger_results[method_name]["visits"],
+            "length_extremes": method["length_extremes"],
             "levenshtein_mean": levenshtein_results[method_name]["mean_abs"],
             "levenshtein_norm_mean": levenshtein_results[method_name]["mean_norm"],
             "nw_mean": nw_results[method_name]["mean_abs"],

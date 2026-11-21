@@ -1,0 +1,32 @@
+\begin{table}[htbp]
+\centering
+\small
+\caption{Hellinger distance between the simulated chains and the training episodes, for episode length and for the number of contacts with each category per episode (in-sample; 0 = identical distributions, 1 = no overlap). The lowest value for each order is in bold.}
+\label{tab:hellinger}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}lrrrrrr}
+\toprule
+ & \multicolumn{3}{c}{\textbf{First-order}} & \multicolumn{3}{c}{\textbf{Second-order}} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}
+ & \textbf{Fixed} & \textbf{Fitted} & \textbf{Term.} & \textbf{Fixed} & \textbf{Fitted} & \textbf{Term.} \\
+\midrule
+Episode length & 0.813 & \textbf{0.119} & 0.243 & 0.813 & \textbf{0.127} & 0.249 \\
+\addlinespace
+\multicolumn{7}{l}{\textit{Contacts per episode}} \\
+Equipment & 0.547 & 0.274 & \textbf{0.134} & 0.489 & 0.235 & \textbf{0.170} \\
+Patient & 0.246 & \textbf{0.134} & 0.227 & \textbf{0.177} & 0.182 & 0.180 \\
+Near Patient & 0.173 & 0.165 & \textbf{0.152} & \textbf{0.151} & 0.156 & 0.172 \\
+Far Patient & \textbf{0.119} & 0.185 & 0.150 & 0.168 & 0.180 & \textbf{0.132} \\
+Hygiene Areas & 0.286 & 0.267 & \textbf{0.213} & 0.280 & 0.258 & \textbf{0.210} \\
+\addlinespace
+Average (5 categories) & 0.274 & 0.205 & \textbf{0.176} & 0.253 & 0.202 & \textbf{0.173} \\
+\addlinespace
+In & -- & -- & 0.471 & -- & -- & 0.328 \\
+Out & -- & -- & 0.167 & -- & -- & 0.163 \\
+\bottomrule
+\end{tabular*}
+\par\smallskip
+\begin{minipage}{\linewidth}\footnotesize
+Fixed: every chain has 26 contacts (the mean training episode length, rounded down). Fitted: lengths drawn from the negative binomial fitted to the training episode lengths. Term.\ (terminating-state): seven-category chains that stop at \textit{Out}, capped at 100 contacts (20 first-order and 25 second-order chains of 1,000 reached the cap). Distances compare 1,000 simulated chains with the 130 training episodes they were estimated from, so they check that the simulations reproduce the training data, not how well the model predicts new episodes. The average is over the five main categories for every method; \textit{In} and \textit{Out} exist only in the terminating-state chains.
+\end{minipage}
+\end{table}

@@ -1,0 +1,38 @@
+MARKOV CHAIN ORDER SELECTION (all episodes; all orders fitted to the same transitions)
+
+--- Mock (62 episodes), 5 states: N = 902 transitions ---
+Log-likelihood (parameters): order 0 -1313.1 (4), order 1 -1064.0 (20), order 2 -962.0 (67)
+Order 0 vs 1: G² = 498.2, df = 16, p = 7.83e-96, BIC penalty = 108.9
+Order 1 vs 2: G² = 204.0, df = 47, p = 1.88e-21, BIC penalty = 319.8
+BIC: order 0 2653.5, order 1 2264.1, order 2 2379.9 -> selects order 1
+
+--- Mock (62 episodes), 7 states: N = 1,040 transitions ---
+Log-likelihood (parameters): order 0 -1683.5 (6), order 1 -1312.9 (24), order 2 -1164.9 (79)
+Order 0 vs 1: G² = 741.2, df = 18, p = 1.01e-145, BIC penalty = 125.0
+Order 1 vs 2: G² = 296.1, df = 55, p = 9.54e-35, BIC penalty = 382.1
+BIC: order 0 3408.7, order 1 2792.6, order 2 2878.5 -> selects order 1
+
+--- Actual (102 episodes), 5 states: N = 2,234 transitions ---
+Log-likelihood (parameters): order 0 -2530.9 (4), order 1 -1952.8 (20), order 2 -1809.7 (74)
+Order 0 vs 1: G² = 1156.2, df = 16, p = 3.7e-236, BIC penalty = 123.4
+Order 1 vs 2: G² = 286.2, df = 54, p = 2.4e-33, BIC penalty = 416.4
+BIC: order 0 5092.7, order 1 4059.9, order 2 4190.1 -> selects order 1
+
+--- Actual (102 episodes), 7 states: N = 2,576 transitions ---
+Log-likelihood (parameters): order 0 -3426.2 (6), order 1 -2750.4 (35), order 2 -2517.2 (140)
+Order 0 vs 1: G² = 1351.4, df = 29, p = 2.44e-266, BIC penalty = 227.8
+Order 1 vs 2: G² = 466.4, df = 105, p = 5.25e-47, BIC penalty = 824.7
+BIC: order 0 6899.4, order 1 5775.8, order 2 6134.0 -> selects order 1
+
+--- Pooled (164 episodes), 5 states: N = 3,136 transitions ---
+Log-likelihood (parameters): order 0 -3936.9 (4), order 1 -3086.8 (20), order 2 -2915.3 (91)
+Order 0 vs 1: G² = 1700.2, df = 16, p = 0, BIC penalty = 128.8
+Order 1 vs 2: G² = 343.0, df = 71, p = 2.87e-37, BIC penalty = 571.6
+BIC: order 0 7906.0, order 1 6334.7, order 2 6563.3 -> selects order 1
+
+--- Pooled (164 episodes), 7 states: N = 3,616 transitions ---
+Log-likelihood (parameters): order 0 -5222.7 (6), order 1 -4180.0 (35), order 2 -3886.9 (158)
+Order 0 vs 1: G² = 2085.4, df = 29, p = 0, BIC penalty = 237.6
+Order 1 vs 2: G² = 586.3, df = 123, p = 1.7e-61, BIC penalty = 1007.8
+BIC: order 0 10494.6, order 1 8646.8, order 2 9068.2 -> selects order 1
+

@@ -9,12 +9,85 @@
   "possible_histories_main": 25,
   "observed_histories_all": 42,
   "possible_histories_all": 49,
-  "train_test_mae_main": 0.1565160485860845,
-  "train_test_mae_all": 0.1357780535469351,
+  "train_test_mae_main": 0.15651604858608448,
+  "train_test_mae_all": 0.13577805354693503,
+  "train_test_mae_all_without_out": 0.12847221350716012,
+  "mae_terminating_without_out": 0.02770684823958052,
+  "predicted_test_mae_terminating_without_out": 0.13115194853348236,
   "sensitivity_mae_5pct_main": 0.06714578470023673,
   "sensitivity_mae_5pct_all": 0.054675254220604194,
-  "bootstrap_avg_std_main": 0.0355091459037811,
+  "bootstrap_avg_std_main": 0.03550914590378109,
   "bootstrap_avg_std_all": 0.0251062842796638,
+  "bootstrap_mean_abs_diff_main": 0.003109245950378746,
+  "bootstrap_mean_abs_diff_all": 0.00359933201099572,
+  "bootstrap_max_std_main": 0.3031088913245536,
+  "bootstrap_max_std_all": 0.42708313008125287,
+  "bootstrap_most_variable_main": "(HygieneArea, NearPatient) \u2192 Equipment",
+  "bootstrap_most_variable_all": "(NearPatient, Out) \u2192 In",
+  "sensitivity_main": [
+    {
+      "noise_level": 0.0,
+      "mean_mae": 0.06197695708264575,
+      "std_mae": 0.007144620985458749
+    },
+    {
+      "noise_level": 0.001,
+      "mean_mae": 0.060967786227503866,
+      "std_mae": 0.0078061111709366166
+    },
+    {
+      "noise_level": 0.005,
+      "mean_mae": 0.05917402744047582,
+      "std_mae": 0.008030915818536134
+    },
+    {
+      "noise_level": 0.01,
+      "mean_mae": 0.060509543780961614,
+      "std_mae": 0.006745744949212978
+    },
+    {
+      "noise_level": 0.02,
+      "mean_mae": 0.06026351251912675,
+      "std_mae": 0.006963518694950049
+    },
+    {
+      "noise_level": 0.05,
+      "mean_mae": 0.06714578470023673,
+      "std_mae": 0.010007139318187318
+    }
+  ],
+  "sensitivity_all": [
+    {
+      "noise_level": 0.0,
+      "mean_mae": 0.04643239654823177,
+      "std_mae": 0.004884764264556913
+    },
+    {
+      "noise_level": 0.001,
+      "mean_mae": 0.04651572513712766,
+      "std_mae": 0.004496396249513017
+    },
+    {
+      "noise_level": 0.005,
+      "mean_mae": 0.04629137114949274,
+      "std_mae": 0.004438729189765871
+    },
+    {
+      "noise_level": 0.01,
+      "mean_mae": 0.04699900141859138,
+      "std_mae": 0.0039202131188649965
+    },
+    {
+      "noise_level": 0.02,
+      "mean_mae": 0.04876530830941193,
+      "std_mae": 0.004993147422802398
+    },
+    {
+      "noise_level": 0.05,
+      "mean_mae": 0.054675254220604194,
+      "std_mae": 0.0075474634504447465
+    }
+  ],
   "missing_main": 14,
   "possible_main": 125,
   "missing_all": 162,
@@ -22,6 +95,33 @@
   "convergence_main": "HygieneArea \u2192 Equipment \u2192 Patient: UNSTABLE (rel. CI width = 1.18, drift = 11%)",
   "convergence_all": "In \u2192 FarPatient \u2192 Equipment: MODERATE (rel. CI width = 0.88, drift = 1%)",
   "capped_terminating_chains": 25,
+  "fixed_length": 26,
+  "observed_lengths": {
+    "min": 4,
+    "max": 78,
+    "mean": 26.53076923076923,
+    "variance": 276.5567455621302,
+    "var_mean_ratio": 10.424000267636105,
+    "at_most_5": 0.038461538461538464,
+    "percentile_5": 6.0,
+    "percentile_95": 61.64999999999999
+  },
+  "length_fit": {
+    "aic": {
+      "poisson": 1923.0264368476164,
+      "nbinom": 1067.621689097567
+    },
+    "best": "nbinom",
+    "best_params": [
+      2.8152343460643974,
+      0.0959324610825988
+    ],
+    "ks": {
+      "D_stat": 0.059013730765588523,
+      "p_value": 0.7330455209475517,
+      "good_fit": true
+    }
+  },
   "cv": {
     "loglik_main": {
       "mean": -1.087150367194873,
@@ -330,11 +430,25 @@
   "methods": {
     "fixed": {
       "name": "25x5_fixed",
-      "mae": 0.01940346531406233,
+      "mae": 0.019403465314062326,
       "avg_chain_length": 26.0,
       "fallback_steps": 0,
       "hellinger_lengths": 0.8125988492218169,
       "hellinger_visits": 0.25291182687346,
+      "hellinger_visits_by_category": {
+        "Equipment": 0.48933985564945476,
+        "Patient": 0.1766276987374136,
+        "NearPatient": 0.1508884299357679,
+        "FarPatient": 0.16802436548480273,
+        "HygieneArea": 0.2796787845598609
+      },
+      "length_extremes": {
+        "shorter_than_observed": 0.0,
+        "longer_than_observed": 0.0,
+        "at_most_5": 0.0,
+        "percentile_5": 26.0,
+        "percentile_95": 26.0
+      },
       "levenshtein_mean": 22.921407692307692,
       "levenshtein_norm_mean": 0.6029387511691843,
       "nw_mean": -12.382438461538461,
@@ -355,6 +469,20 @@
       "fallback_steps": 0,
       "hellinger_lengths": 0.1269521981452762,
       "hellinger_visits": 0.20228598453881236,
+      "hellinger_visits_by_category": {
+        "Equipment": 0.2350803984606509,
+        "Patient": 0.18167674924265614,
+        "NearPatient": 0.1563957437084888,
+        "FarPatient": 0.17989986779374265,
+        "HygieneArea": 0.25837716348852313
+      },
+      "length_extremes": {
+        "shorter_than_observed": 0.015,
+        "longer_than_observed": 0.006,
+        "at_most_5": 0.043,
+        "percentile_5": 6.0,
+        "percentile_95": 57.0
+      },
       "levenshtein_mean": 26.017976923076922,
       "levenshtein_norm_mean": 0.6399576202170639,
       "nw_mean": -16.101776923076923,
@@ -364,7 +492,7 @@
       "levenshtein_norm_scrambled": 0.6273786473708586,
       "nw_norm_scrambled": -1.5183817308574725,
       "sw_norm_scrambled": 0.3813071549418998,
-      "predicted_test_mae": 0.15524258211366834,
+      "predicted_test_mae": 0.15524258211366831,
       "shorter_than_observed": 0.015,
       "longer_than_observed": 0.006
     },
@@ -375,6 +503,22 @@
       "fallback_steps": 0,
       "hellinger_lengths": 0.24853050354564019,
       "hellinger_visits": 0.19357815607537468,
+      "hellinger_visits_by_category": {
+        "In": 0.32758724231658554,
+        "Equipment": 0.16986114813411496,
+        "Patient": 0.1804455036180298,
+        "NearPatient": 0.1717452724665605,
+        "FarPatient": 0.13241109626383563,
+        "HygieneArea": 0.2100234240606599,
+        "Out": 0.16297340566783644
+      },
+      "length_extremes": {
+        "shorter_than_observed": 0.01,
+        "longer_than_observed": 0.06,
+        "at_most_5": 0.125,
+        "percentile_5": 4.0,
+        "percentile_95": 83.04999999999995
+      },
       "levenshtein_mean": 27.728646153846153,
       "levenshtein_norm_mean": 0.6041483251859237,
       "nw_mean": -17.288323076923078,
